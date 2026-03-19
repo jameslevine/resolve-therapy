@@ -1,6 +1,7 @@
 const Stripe = require("stripe");
 const { ddb, TABLE, PutCommand, GetCommand, UpdateCommand } = require("./lib/dynamo");
 const { ok, error, options } = require("./lib/response");
+const { loggerFromEvent } = require("./lib/logger");
 const crypto = require("crypto");
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -12,6 +13,7 @@ const CREDIT_PACKAGES = {
 };
 
 exports.handler = async (event) => {
+  const log = loggerFromEvent(event, "checkout");
   if (event.httpMethod === "OPTIONS") return options();
   const path = event.path || "";
   const method = event.httpMethod;
@@ -39,7 +41,7 @@ exports.handler = async (event) => {
 
     return error(404, "Not found");
   } catch (err) {
-    console.error("Checkout error:", err);
+    log.error("Checkout error", { error: err.message });
     return error(500, "Failed to process request");
   }
 };
@@ -101,7 +103,7 @@ async function handleWebhook(event) {
     try {
       stripeEvent = stripe.webhooks.constructEvent(event.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
     } catch (err) {
-      console.error("Webhook signature verification failed:", err.message);
+      log.error("Webhook signature verification failed", { error: err.message });
       return error(400, "Webhook signature verification failed");
     }
   } else {
@@ -144,7 +146,7 @@ async function fulfillCredits(metadata) {
       },
     }));
   } catch (err) {
-    console.error("Failed to add credits:", err);
+    log.error("Failed to add credits", { error: err.message });
     throw err;
   }
 }

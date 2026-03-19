@@ -1,6 +1,7 @@
 const { ddb, TABLE, PutCommand, GetCommand, QueryCommand, UpdateCommand } = require("./lib/dynamo");
 const { getTherapistResponse } = require("./lib/bedrock");
 const { ok, error, options } = require("./lib/response");
+const { loggerFromEvent } = require("./lib/logger");
 const crypto = require("crypto");
 
 const THERAPISTS = {
@@ -35,6 +36,7 @@ const THERAPISTS = {
 exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") return options();
 
+  const log = loggerFromEvent(event, "sessions");
   const path = event.path || "";
   const method = event.httpMethod;
 
@@ -80,7 +82,7 @@ exports.handler = async (event) => {
 
     return error(404, "Not found");
   } catch (err) {
-    console.error("Session error:", err);
+    log.error("Session handler error", { error: err.message });
     return error(500, "Internal server error");
   }
 };
@@ -257,6 +259,7 @@ async function handleRespond(event) {
 }
 
 async function handleEndSession(event) {
+  const log = loggerFromEvent(event, "sessions");
   const path = event.path || "";
   const id = extractSessionId(path);
   const body = JSON.parse(event.body || "{}");
@@ -326,7 +329,7 @@ async function handleEndSession(event) {
       }));
       return ok({ success: true, summary });
     } catch (err) {
-      console.error("Summary generation failed:", err);
+      log.error("Summary generation failed", { error: err.message, sessionId: id });
     }
   }
 

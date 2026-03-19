@@ -1,6 +1,7 @@
 const { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
 const { TranscribeClient, StartTranscriptionJobCommand, GetTranscriptionJobCommand } = require("@aws-sdk/client-transcribe");
 const { ok, error, options } = require("./lib/response");
+const { loggerFromEvent } = require("./lib/logger");
 
 const REGION = process.env.AWS_REGION || "eu-west-2";
 const BUCKET = process.env.TRANSCRIBE_BUCKET || process.env.FRONTEND_BUCKET_NAME || "resolve-therapy-transcribe";
@@ -11,18 +12,19 @@ exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") return options();
 
   const path = event.path || "";
+  const log = loggerFromEvent(event, "voice");
 
   try {
-    if (path.endsWith("/speak")) return await handleSpeak(event);
-    if (path.endsWith("/transcribe")) return await handleTranscribe(event);
+    if (path.endsWith("/speak")) return await handleSpeak(event, log);
+    if (path.endsWith("/transcribe")) return await handleTranscribe(event, log);
     return error(404, "Not found");
   } catch (err) {
-    console.error("Voice error:", err);
+    log.error("Voice handler error", { error: err.message });
     return error(500, "Internal server error");
   }
 };
 
-async function handleSpeak(event) {
+async function handleSpeak(event, log) {
   const { therapistId, text } = JSON.parse(event.body || "{}");
   if (!text) return error(400, "text is required");
 
@@ -71,7 +73,7 @@ async function handleSpeak(event) {
   });
 
   if (!res.ok) {
-    console.error("ElevenLabs error:", res.status);
+    log.error("ElevenLabs TTS failed", { status: res.status, therapistId });
     return error(502, "TTS service error");
   }
 
@@ -81,7 +83,7 @@ async function handleSpeak(event) {
   return ok({ text, audioUrl: `data:audio/mpeg;base64,${base64}` });
 }
 
-async function handleTranscribe(event) {
+async function handleTranscribe(event, log) {
   let audioBuffer;
   let audioFormat = "webm";
 
@@ -99,7 +101,7 @@ async function handleTranscribe(event) {
       audioFormat = allowed.includes(body.format) ? body.format : "webm";
     }
   } catch (e) {
-    console.error("Parse error:", e);
+    log.error("Request parse error", { error: e.message });
     return error(400, "Invalid request body");
   }
 
@@ -158,13 +160,13 @@ async function handleTranscribe(event) {
         result = await transcriptRes.json();
         break;
       } else if (status === "FAILED") {
-        console.error("Transcribe failed:", jobResult.TranscriptionJob?.FailureReason);
+        log.error("Transcribe job failed", { reason: jobResult.TranscriptionJob?.FailureReason });
         return ok({ segments: [] });
       }
     }
 
     if (!result) {
-      console.error("Transcribe timed out");
+      log.error("Transcribe job timed out", { jobId });
       return ok({ segments: [] });
     }
 
@@ -173,12 +175,7 @@ async function handleTranscribe(event) {
     const items = result.results?.items || [];
     const transcript = result.results?.transcripts?.[0]?.transcript || "";
 
-    console.log("Transcribe result:", JSON.stringify({
-      transcript: transcript.substring(0, 200),
-      itemCount: items.length,
-      speakerCount: speakerLabels?.speakers || 0,
-      segments: speakerLabels?.segments?.length || 0,
-    }));
+    log.info("Transcribe completed", { transcript: transcript.substring(0, 200), itemCount: items.length, speakerCount: speakerLabels?.speakers || 0, segments: speakerLabels?.segments?.length || 0 });
 
     if (!speakerLabels || !speakerLabels.segments) {
       // No speaker labels, return as single speaker

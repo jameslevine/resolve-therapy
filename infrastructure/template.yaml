@@ -610,8 +610,200 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub "arn:aws:execute-api:eu-west-2:${AWS::AccountId}:${ApiGateway}/*"
 
-# ============================================================
-# Outputs
+  # ============================================================
+  # Outputs
+  # ============================================================
+  # CloudWatch Log Groups
+  # ============================================================
+  CheckoutLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/resolve-therapy-checkout
+      RetentionInDays: 30
+
+  SessionsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/resolve-therapy-sessions
+      RetentionInDays: 30
+
+  VoiceLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/resolve-therapy-voice
+      RetentionInDays: 30
+
+  # ============================================================
+  # CloudWatch Metric Filters (error tracking)
+  # ============================================================
+  CheckoutErrorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref CheckoutLogGroup
+      FilterPattern: '{ $.level = "ERROR" }'
+      MetricTransformations:
+        - MetricName: CheckoutErrors
+          MetricNamespace: ResolveTherapy
+          MetricValue: "1"
+          DefaultValue: 0
+
+  SessionsErrorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref SessionsLogGroup
+      FilterPattern: '{ $.level = "ERROR" }'
+      MetricTransformations:
+        - MetricName: SessionsErrors
+          MetricNamespace: ResolveTherapy
+          MetricValue: "1"
+          DefaultValue: 0
+
+  VoiceErrorMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      LogGroupName: !Ref VoiceLogGroup
+      FilterPattern: '{ $.level = "ERROR" }'
+      MetricTransformations:
+        - MetricName: VoiceErrors
+          MetricNamespace: ResolveTherapy
+          MetricValue: "1"
+          DefaultValue: 0
+
+  # ============================================================
+  # CloudWatch Alarms
+  # ============================================================
+  HighErrorRateAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: resolve-therapy-high-error-rate
+      AlarmDescription: Triggers when total Lambda errors exceed 10 in 5 minutes
+      Namespace: ResolveTherapy
+      MetricName: SessionsErrors
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 10
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  # ============================================================
+  # CloudWatch Dashboard
+  # ============================================================
+  MonitoringDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: resolve-therapy
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 0,
+              "width": 24,
+              "height": 6,
+              "properties": {
+                "title": "Lambda Invocations",
+                "metrics": [
+                  ["AWS/Lambda", "Invocations", "FunctionName", "resolve-therapy-sessions"],
+                  ["AWS/Lambda", "Invocations", "FunctionName", "resolve-therapy-checkout"],
+                  ["AWS/Lambda", "Invocations", "FunctionName", "resolve-therapy-voice"]
+                ],
+                "period": 300,
+                "stat": "Sum",
+                "region": "eu-west-2"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 6,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "title": "Lambda Errors",
+                "metrics": [
+                  ["AWS/Lambda", "Errors", "FunctionName", "resolve-therapy-sessions"],
+                  ["AWS/Lambda", "Errors", "FunctionName", "resolve-therapy-checkout"],
+                  ["AWS/Lambda", "Errors", "FunctionName", "resolve-therapy-voice"]
+                ],
+                "period": 300,
+                "stat": "Sum",
+                "region": "eu-west-2"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12,
+              "y": 6,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "title": "Lambda Duration (avg)",
+                "metrics": [
+                  ["AWS/Lambda", "Duration", "FunctionName", "resolve-therapy-sessions"],
+                  ["AWS/Lambda", "Duration", "FunctionName", "resolve-therapy-checkout"],
+                  ["AWS/Lambda", "Duration", "FunctionName", "resolve-therapy-voice"]
+                ],
+                "period": 300,
+                "stat": "Average",
+                "region": "eu-west-2"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 12,
+              "width": 24,
+              "height": 6,
+              "properties": {
+                "title": "Application Errors (structured logs)",
+                "metrics": [
+                  ["ResolveTherapy", "SessionsErrors"],
+                  ["ResolveTherapy", "CheckoutErrors"],
+                  ["ResolveTherapy", "VoiceErrors"]
+                ],
+                "period": 300,
+                "stat": "Sum",
+                "region": "eu-west-2"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0,
+              "y": 18,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "title": "API Gateway Requests",
+                "metrics": [
+                  ["AWS/ApiGateway", "Count", "ApiName", "resolve-therapy-api"]
+                ],
+                "period": 300,
+                "stat": "Sum",
+                "region": "eu-west-2"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12,
+              "y": 18,
+              "width": 12,
+              "height": 6,
+              "properties": {
+                "title": "API Gateway 4xx/5xx Errors",
+                "metrics": [
+                  ["AWS/ApiGateway", "4XXError", "ApiName", "resolve-therapy-api"],
+                  ["AWS/ApiGateway", "5XXError", "ApiName", "resolve-therapy-api"]
+                ],
+                "period": 300,
+                "stat": "Sum",
+                "region": "eu-west-2"
+              }
+            }
+          ]
+        }
+
 # ============================================================
 Outputs:
   ApiUrl:
