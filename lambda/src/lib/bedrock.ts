@@ -1,7 +1,28 @@
-const { BedrockRuntimeClient, ConverseCommand } = require("@aws-sdk/client-bedrock-runtime");
+import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-runtime";
 
 const bedrock = new BedrockRuntimeClient({ region: process.env.AWS_REGION || "eu-west-2" });
 const MODEL_ID = process.env.BEDROCK_MODEL_ID || "anthropic.claude-sonnet-4-6";
+
+interface Participants {
+  names?: string[];
+  relationship?: string;
+  context?: string;
+}
+
+interface Memory {
+  category: string;
+  value: string;
+}
+
+interface TranscriptMessage {
+  content: string;
+  isTherapist: boolean;
+}
+
+interface TherapistResponse {
+  text: string;
+  memories: Memory[];
+}
 
 const SYSTEM_PROMPT = `You are an AI therapist specializing in group conflict resolution and couples therapy.
 
@@ -29,16 +50,24 @@ IMPORTANT: Your responses will be spoken aloud via text-to-speech. Do NOT use em
 
 The conversation is captured via a shared microphone. All non-therapist messages come from the participants in the room. Use the participant details provided to understand who is speaking and address them by name. If only one person seems to be talking, gently invite the others to share their perspective.`;
 
-async function getTherapistResponse(therapistPrompt, sessionPrompt, memories, messages, participants) {
-  const systemContent = [
+export async function getTherapistResponse(
+  therapistPrompt: string,
+  sessionPrompt: string,
+  memories: Memory[],
+  messages: TranscriptMessage[],
+  participants?: Participants,
+): Promise<TherapistResponse> {
+  const systemContent: Array<{ text: string }> = [
     { text: SYSTEM_PROMPT },
     { text: `\n\nTherapist personality:\n${therapistPrompt}` },
   ];
+
   if (sessionPrompt) {
     systemContent.push({ text: `\n\nSession focus:\n${sessionPrompt}` });
   }
+
   if (participants) {
-    const parts = [];
+    const parts: string[] = [];
     if (participants.names && participants.names.length > 0) {
       parts.push(`Participants: ${participants.names.join(", ")}`);
     }
@@ -52,13 +81,14 @@ async function getTherapistResponse(therapistPrompt, sessionPrompt, memories, me
       systemContent.push({ text: `\n\nSession participants:\n${parts.join("\n")}` });
     }
   }
+
   if (memories && memories.length > 0) {
-    const memText = memories.map(m => `[${m.category}] ${m.value}`).join("\n");
+    const memText = memories.map((m) => `[${m.category}] ${m.value}`).join("\n");
     systemContent.push({ text: `\n\nRelevant memories from past sessions:\n${memText}` });
   }
 
   // Ensure messages alternate user/assistant
-  const formatted = [];
+  const formatted: Array<{ role: "user" | "assistant"; content: Array<{ text: string }> }> = [];
   for (const msg of messages) {
     const role = msg.isTherapist ? "assistant" : "user";
     const content = msg.content;
@@ -68,6 +98,7 @@ async function getTherapistResponse(therapistPrompt, sessionPrompt, memories, me
       formatted.push({ role, content: [{ text: content }] });
     }
   }
+
   // Must start with user
   if (formatted.length > 0 && formatted[0].role === "assistant") {
     formatted.shift();
@@ -87,7 +118,7 @@ async function getTherapistResponse(therapistPrompt, sessionPrompt, memories, me
   const text = response.output?.message?.content?.[0]?.text || "";
 
   // Extract memories
-  const memoryMatches = [];
+  const memoryMatches: Memory[] = [];
   const memRegex = /<memory category="([^"]+)">([^<]+)<\/memory>/g;
   let match;
   while ((match = memRegex.exec(text)) !== null) {
@@ -99,5 +130,3 @@ async function getTherapistResponse(therapistPrompt, sessionPrompt, memories, me
 
   return { text: cleanText, memories: memoryMatches };
 }
-
-module.exports = { getTherapistResponse };

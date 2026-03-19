@@ -1,0 +1,576 @@
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-runtime";
+import { randomUUID } from "crypto";
+
+import { ddb, TABLE, PutCommand, GetCommand, QueryCommand, UpdateCommand } from "./lib/dynamo";
+import { getTherapistResponse } from "./lib/bedrock";
+import { ok, error, options } from "./lib/response";
+import { loggerFromEvent, Logger } from "./lib/logger";
+
+interface TranscriptEntry {
+  isTherapist: boolean;
+  content: string;
+}
+
+interface SessionMemory {
+  category: string;
+  value: string;
+}
+
+interface Participants {
+  names?: string[];
+  [key: string]: unknown;
+}
+
+interface SessionItem {
+  PK: string;
+  SK: string;
+  id: string;
+  userId: string;
+  therapistId: string;
+  prompt: string;
+  participants: Participants | null;
+  status: string;
+  createdAt: string;
+  [key: string]: unknown;
+}
+
+interface StartSessionBody {
+  therapistId?: string;
+  prompt?: string;
+  userId?: string;
+  participants?: Participants;
+}
+
+interface RespondBody {
+  sessionId?: string;
+  therapistId?: string;
+  prompt?: string;
+  participants?: Participants | null;
+  transcript?: TranscriptEntry[];
+}
+
+interface EndSessionBody {
+  transcript?: TranscriptEntry[];
+}
+
+const THERAPISTS: Record<string, { personalityPrompt: string; voiceId: string }> = {
+  "dr-sarah-chen": {
+    personalityPrompt:
+      "You are Dr. Sarah Chen, a warm and empathetic couples therapist specializing in Emotionally Focused Therapy. You gently guide partners to explore the emotions beneath their conflicts. You validate feelings, identify negative interaction cycles, and help couples reconnect through vulnerability. Your tone is calm, nurturing, and insightful.",
+    voiceId: "EXAVITQu4vr4xnSDxMaL",
+  },
+  "dr-marcus-wright": {
+    personalityPrompt:
+      "You are Dr. Marcus Wright, a direct and insightful family therapist specializing in structural therapy and group mediation. You are skilled at managing multi-person dynamics, identifying power imbalances, and helping groups establish healthier boundaries. Your tone is grounded, authoritative yet warm, and occasionally uses humor to ease tension.",
+    voiceId: "TX3LPaxmHKxFdv7VOQHJ",
+  },
+  "dr-elena-vasquez": {
+    personalityPrompt:
+      "You are Dr. Elena Vasquez, a gentle and grounding trauma-sensitive therapist. You integrate EMDR and somatic awareness into conflict resolution. You are highly attuned to signs of emotional overwhelm and skilfully help clients regulate their nervous systems. Your tone is soft, reassuring, and deeply empathetic, with a focus on safety and pacing.",
+    voiceId: "XB0fDUnXU5powFXDhCwa",
+  },
+  "dr-james-okonkwo": {
+    personalityPrompt:
+      "You are Dr. James Okonkwo, an energetic and practical communication coach using CBT techniques. You are direct, encouraging, and occasionally use humor to lighten heavy moments. You focus on identifying specific thought patterns and teaching actionable communication skills. Your tone is upbeat, motivating, and solution-oriented.",
+    voiceId: "pNInz6obpgDQGcFmaJgB",
+  },
+  "dr-mei-tanaka": {
+    personalityPrompt:
+      "You are Dr. Mei Tanaka, a calm and reflective mindfulness-based therapist. You speak with measured pacing and bring a contemplative quality to every interaction. You gently guide clients to observe their thoughts and emotions without judgment, using mindfulness techniques to de-escalate reactivity. Your tone is serene, thoughtful, and quietly encouraging.",
+    voiceId: "jBpfuIE2acCO8z3wKNLl",
+  },
+  "dr-rachel-abrams": {
+    personalityPrompt:
+      "You are Dr. Rachel Abrams, a research-oriented Gottman Method therapist. You are warm but precise, often referencing specific relationship patterns backed by research. You help couples identify destructive cycles and replace them with evidence-based alternatives. Your tone is knowledgeable, encouraging, and structured.",
+    voiceId: "EXAVITQu4vr4xnSDxMaL",
+  },
+  "dr-david-kim": {
+    personalityPrompt:
+      "You are Dr. David Kim, a calm and steady anger management specialist. You are unflappable even when emotions run high. You help clients identify anger triggers, regulate intense feelings using DBT techniques, and develop healthier expression patterns. Your tone is grounded, patient, and reassuring.",
+    voiceId: "TX3LPaxmHKxFdv7VOQHJ",
+  },
+  "dr-amara-osei": {
+    personalityPrompt:
+      "You are Dr. Amara Osei, a culturally sensitive therapist who specializes in interracial and intercultural relationship dynamics. You help couples understand how cultural backgrounds shape their expectations and conflicts. You are inclusive, curious, and non-judgmental. Your tone is warm, thoughtful, and affirming.",
+    voiceId: "XB0fDUnXU5powFXDhCwa",
+  },
+  "dr-thomas-brennan": {
+    personalityPrompt:
+      "You are Dr. Thomas Brennan, a practical financial therapy specialist. You help couples understand the emotional drivers behind money conflicts and build shared financial strategies. You are direct, pragmatic, and occasionally use real-world analogies. Your tone is grounded, solution-focused, and reassuring.",
+    voiceId: "pNInz6obpgDQGcFmaJgB",
+  },
+  "dr-sofia-petrov": {
+    personalityPrompt:
+      "You are Dr. Sofia Petrov, a compassionate intimacy and reconnection specialist. You help couples rebuild emotional and physical closeness with sensitivity and care. You are non-judgmental, warm, and attuned to vulnerability. Your tone is gentle, encouraging, and deeply empathetic.",
+    voiceId: "jBpfuIE2acCO8z3wKNLl",
+  },
+  "dr-nathan-cole": {
+    personalityPrompt:
+      "You are Dr. Nathan Cole, a step-family dynamics specialist with personal experience in blended families. You are relatable, patient, and skilled at navigating complex multi-household dynamics. You help families build cohesion while respecting everyone's history. Your tone is approachable, understanding, and pragmatic.",
+    voiceId: "TX3LPaxmHKxFdv7VOQHJ",
+  },
+  "dr-aisha-rahman": {
+    personalityPrompt:
+      "You are Dr. Aisha Rahman, an anxiety and relationship specialist. You help couples understand how anxiety drives conflict patterns and teach both partners coping strategies. You are gentle with anxious clients while also empowering them. Your tone is calm, validating, and structured.",
+    voiceId: "EXAVITQu4vr4xnSDxMaL",
+  },
+  "dr-carlos-mendoza": {
+    personalityPrompt:
+      "You are Dr. Carlos Mendoza, a narrative therapist who helps couples rewrite their relationship stories. You are curious, creative, and skilled at externalizing problems. You ask thought-provoking questions that help partners see their conflicts in new ways. Your tone is warm, imaginative, and empowering.",
+    voiceId: "pNInz6obpgDQGcFmaJgB",
+  },
+  "dr-hannah-liu": {
+    personalityPrompt:
+      "You are Dr. Hannah Liu, a postpartum and new parent specialist. You normalize the challenges of new parenthood while helping couples maintain their connection. You are deeply empathetic about sleep deprivation and identity shifts. Your tone is warm, validating, and gently practical.",
+    voiceId: "XB0fDUnXU5powFXDhCwa",
+  },
+  "dr-omar-hassan": {
+    personalityPrompt:
+      "You are Dr. Omar Hassan, a trust repair and infidelity recovery specialist. You create safety for both partners — the hurt and the one who caused harm. You are non-judgmental, patient, and structured in your approach. Your tone is steady, compassionate, and honest.",
+    voiceId: "TX3LPaxmHKxFdv7VOQHJ",
+  },
+  "dr-lily-chen-wu": {
+    personalityPrompt:
+      "You are Dr. Lily Chen-Wu, a specialist in in-law and extended family conflicts. You help couples navigate family-of-origin dynamics and establish united boundaries. You are diplomatic, culturally sensitive, and practical. Your tone is warm, wise, and gently firm when needed.",
+    voiceId: "jBpfuIE2acCO8z3wKNLl",
+  },
+  "dr-ryan-murphy": {
+    personalityPrompt:
+      "You are Dr. Ryan Murphy, an LGBTQ+-affirming relationship therapist. You are warm, inclusive, and knowledgeable about the unique challenges LGBTQ+ couples face. You address minority stress alongside universal relationship issues. Your tone is affirming, genuine, and empowering.",
+    voiceId: "pNInz6obpgDQGcFmaJgB",
+  },
+  "dr-priya-sharma": {
+    personalityPrompt:
+      "You are Dr. Priya Sharma, an attachment-based couples therapist. You help partners understand their attachment styles and how they interact to create conflict. You are deeply empathetic and skilled at identifying pursue-withdraw patterns. Your tone is warm, insightful, and gently illuminating.",
+    voiceId: "EXAVITQu4vr4xnSDxMaL",
+  },
+  "dr-michael-torres": {
+    personalityPrompt:
+      "You are Dr. Michael Torres, a specialist in substance recovery and relationship repair. You are compassionate about the challenges of recovery while holding both partners accountable. You understand codependency and enabling patterns. Your tone is steady, hopeful, and honest.",
+    voiceId: "TX3LPaxmHKxFdv7VOQHJ",
+  },
+  "dr-emma-williams": {
+    personalityPrompt:
+      "You are Dr. Emma Williams, a parenting-focused couples therapist. You help parents navigate disagreements over discipline, roles, and priorities without losing their couple connection. You are practical, empathetic, and skilled at finding middle ground. Your tone is warm, relatable, and solution-oriented.",
+    voiceId: "XB0fDUnXU5powFXDhCwa",
+  },
+  "dr-alex-novak": {
+    personalityPrompt:
+      "You are Dr. Alex Novak, a solution-focused brief therapist. You help couples focus on strengths and solutions rather than problems. You ask scaling questions, identify exceptions to problems, and celebrate small wins. Your tone is optimistic, energetic, and future-oriented.",
+    voiceId: "pNInz6obpgDQGcFmaJgB",
+  },
+  "dr-grace-adeyemi": {
+    personalityPrompt:
+      "You are Dr. Grace Adeyemi, a specialist in long-distance and digital relationships. You help couples maintain connection across distance through intentional communication strategies. You are creative, empathetic, and practical about the challenges of distance. Your tone is warm, encouraging, and resourceful.",
+    voiceId: "jBpfuIE2acCO8z3wKNLl",
+  },
+  "dr-daniel-park": {
+    personalityPrompt:
+      "You are Dr. Daniel Park, a specialist in perfectionism and relationship expectations. You help couples release impossible standards and embrace imperfection with compassion. You are insightful about high-achiever dynamics and gently challenging. Your tone is thoughtful, compassionate, and quietly humorous.",
+    voiceId: "TX3LPaxmHKxFdv7VOQHJ",
+  },
+  "dr-nina-kowalski": {
+    personalityPrompt:
+      "You are Dr. Nina Kowalski, a grief and loss specialist who helps couples navigate mourning together. You are deeply compassionate, patient with silence, and skilled at holding space for pain. You help partners support each other through loss. Your tone is tender, steady, and gently guiding.",
+    voiceId: "EXAVITQu4vr4xnSDxMaL",
+  },
+  "dr-jay-robinson": {
+    personalityPrompt:
+      "You are Dr. Jay Robinson, a relationship wellness and prevention specialist. You help couples build resilient relationships through proactive skill-building. You are positive, encouraging, and focused on strengths. Your tone is upbeat, practical, and motivating.",
+    voiceId: "pNInz6obpgDQGcFmaJgB",
+  },
+  "dr-fatima-al-rashid": {
+    personalityPrompt:
+      "You are Dr. Fatima Al-Rashid, an advanced Emotionally Focused Therapy practitioner. You are deeply attuned to emotional undercurrents and skilled at helping partners access vulnerable feelings beneath defensive behaviors. You are gentle, persistent, and emotionally present. Your tone is warm, intuitive, and softly encouraging.",
+    voiceId: "XB0fDUnXU5powFXDhCwa",
+  },
+};
+
+let log: Logger;
+
+export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+  if (event.httpMethod === "OPTIONS") return options();
+
+  log = loggerFromEvent(event, "sessions");
+  const path = event.path || "";
+  const method = event.httpMethod;
+
+  try {
+    // POST /sessions/respond
+    if (path.endsWith("/respond") && method === "POST") {
+      return await handleRespond(event);
+    }
+
+    // POST /sessions/start - Create session using credit
+    if (path.endsWith("/start") && method === "POST") {
+      return await handleStartSession(event);
+    }
+
+    // POST /sessions/{id}/end
+    if (path.includes("/end") && method === "POST") {
+      return await handleEndSession(event);
+    }
+
+    // POST /sessions/{id}/verify-payment (legacy, kept for compatibility)
+    if (path.includes("/verify-payment") && method === "POST") {
+      return ok({ verified: true });
+    }
+
+    // GET /sessions/{id}/transcript
+    if (path.includes("/transcript") && method === "GET") {
+      const parts = path.split("/");
+      const sessionIdx = parts.indexOf("sessions");
+      const sessionId = parts[sessionIdx + 1];
+      return await handleGetTranscript(sessionId);
+    }
+
+    // GET /sessions/{id}
+    const idMatch = path.match(/\/sessions\/([^/]+)$/);
+    if (idMatch && method === "GET") {
+      return await handleGetSession(idMatch[1]);
+    }
+
+    // GET /sessions?userId=xxx
+    if (method === "GET") {
+      return await handleListSessions(event);
+    }
+
+    return error(404, "Not found");
+  } catch (err) {
+    log.error("Session handler error", { error: (err as Error).message });
+    return error(500, "Internal server error");
+  }
+};
+
+function extractSessionId(path: string): string {
+  const parts = path.split("/");
+  return parts[parts.length - 2];
+}
+
+async function handleStartSession(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const { therapistId, prompt, userId, participants } = JSON.parse(
+    event.body || "{}",
+  ) as StartSessionBody;
+  if (!therapistId || !userId) return error(400, "therapistId and userId are required");
+
+  // Check credit balance (balance is in minutes)
+  const creditResult = await ddb.send(
+    new GetCommand({
+      TableName: TABLE,
+      Key: { PK: `USER#${userId}`, SK: "CREDITS" },
+    }),
+  );
+  const balance: number = creditResult.Item?.balance || 0;
+  if (balance < 1) return error(403, "Insufficient minutes");
+
+  const sessionId = randomUUID();
+
+  // Create session record
+  await ddb.send(
+    new PutCommand({
+      TableName: TABLE,
+      Item: {
+        PK: `SESSION#${sessionId}`,
+        SK: "META",
+        GSI1PK: `USER#${userId}`,
+        GSI1SK: `SESSION#${new Date().toISOString()}`,
+        id: sessionId,
+        userId,
+        therapistId,
+        prompt: prompt || "",
+        participants: participants || null,
+        status: "active",
+        createdAt: new Date().toISOString(),
+      },
+    }),
+  );
+
+  return ok({ sessionId, balance });
+}
+
+async function handleGetTranscript(id: string): Promise<APIGatewayProxyResult> {
+  const result = await ddb.send(
+    new GetCommand({
+      TableName: TABLE,
+      Key: { PK: `SESSION#${id}`, SK: "TRANSCRIPT" },
+    }),
+  );
+  if (!result.Item) return ok({ entries: [] });
+  return ok({ entries: result.Item.entries || [] });
+}
+
+async function handleGetSession(id: string): Promise<APIGatewayProxyResult> {
+  const result = await ddb.send(
+    new GetCommand({
+      TableName: TABLE,
+      Key: { PK: `SESSION#${id}`, SK: "META" },
+    }),
+  );
+  if (!result.Item) return error(404, "Session not found");
+  return ok(result.Item);
+}
+
+async function handleListSessions(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const userId = event.queryStringParameters?.userId;
+
+  if (userId) {
+    const result = await ddb.send(
+      new QueryCommand({
+        TableName: TABLE,
+        IndexName: "GSI1",
+        KeyConditionExpression: "GSI1PK = :pk AND begins_with(GSI1SK, :sk)",
+        ExpressionAttributeValues: {
+          ":pk": `USER#${userId}`,
+          ":sk": "SESSION#",
+        },
+        ScanIndexForward: false,
+        Limit: 50,
+      }),
+    );
+    return ok({ sessions: result.Items || [] });
+  }
+
+  return ok({ sessions: [] });
+}
+
+async function handleRespond(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const { sessionId, therapistId, prompt, participants, transcript } = JSON.parse(
+    event.body || "{}",
+  ) as RespondBody;
+  if (!sessionId || !therapistId) return error(400, "sessionId and therapistId required");
+
+  const therapist = THERAPISTS[therapistId];
+  if (!therapist) return error(400, "Unknown therapist");
+
+  // Get session to find userId for cross-session memory
+  const sessionResult = await ddb.send(
+    new GetCommand({
+      TableName: TABLE,
+      Key: { PK: `SESSION#${sessionId}`, SK: "META" },
+    }),
+  );
+  const userId: string | undefined = sessionResult.Item?.userId;
+
+  // Fetch session-level memories
+  const sessionMemResult = await ddb.send(
+    new QueryCommand({
+      TableName: TABLE,
+      KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
+      ExpressionAttributeValues: {
+        ":pk": `SESSION#${sessionId}`,
+        ":sk": "MEMORY#",
+      },
+    }),
+  );
+  const sessionMemories: SessionMemory[] = (sessionMemResult.Items || []).map((m) => ({
+    category: m.category as string,
+    value: m.value as string,
+  }));
+
+  // Fetch user-level cross-session memories
+  let userMemories: SessionMemory[] = [];
+  if (userId) {
+    const userMemResult = await ddb.send(
+      new QueryCommand({
+        TableName: TABLE,
+        KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
+        ExpressionAttributeValues: {
+          ":pk": `USER#${userId}`,
+          ":sk": "MEMORY#",
+        },
+        Limit: 50,
+      }),
+    );
+    userMemories = (userMemResult.Items || []).map((m) => ({
+      category: m.category as string,
+      value: m.value as string,
+    }));
+  }
+
+  const allMemories: SessionMemory[] = [...userMemories, ...sessionMemories];
+
+  const result = await getTherapistResponse(
+    therapist.personalityPrompt,
+    prompt || "",
+    allMemories,
+    transcript || [],
+    participants || undefined,
+  );
+
+  // Store new memories at both session and user level
+  if (result.memories && result.memories.length > 0) {
+    for (const mem of result.memories) {
+      const key = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      // Session-level memory
+      await ddb.send(
+        new PutCommand({
+          TableName: TABLE,
+          Item: {
+            PK: `SESSION#${sessionId}`,
+            SK: `MEMORY#${key}`,
+            category: mem.category,
+            value: mem.value,
+            createdAt: new Date().toISOString(),
+          },
+        }),
+      );
+      // User-level cross-session memory
+      if (userId) {
+        await ddb.send(
+          new PutCommand({
+            TableName: TABLE,
+            Item: {
+              PK: `USER#${userId}`,
+              SK: `MEMORY#${key}`,
+              sessionId,
+              therapistId,
+              category: mem.category,
+              value: mem.value,
+              createdAt: new Date().toISOString(),
+            },
+          }),
+        );
+      }
+    }
+  }
+
+  return ok({ text: result.text });
+}
+
+async function handleEndSession(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const log = loggerFromEvent(event, "sessions");
+  const path = event.path || "";
+  const id = extractSessionId(path);
+  const body = JSON.parse(event.body || "{}") as EndSessionBody;
+  const { transcript } = body;
+
+  // Get session to find userId
+  const sessionResult = await ddb.send(
+    new GetCommand({
+      TableName: TABLE,
+      Key: { PK: `SESSION#${id}`, SK: "META" },
+    }),
+  );
+  if (!sessionResult.Item) return error(404, "Session not found");
+
+  const session = sessionResult.Item as SessionItem;
+
+  // Calculate and deduct minutes used
+  const endedAt = new Date().toISOString();
+  const durationMs = new Date(endedAt).getTime() - new Date(session.createdAt).getTime();
+  const minutesUsed = Math.max(1, Math.ceil(durationMs / 60000));
+
+  if (session.userId) {
+    try {
+      await ddb.send(
+        new UpdateCommand({
+          TableName: TABLE,
+          Key: { PK: `USER#${session.userId}`, SK: "CREDITS" },
+          UpdateExpression: "SET balance = balance - :mins, updatedAt = :now",
+          ConditionExpression: "balance >= :mins",
+          ExpressionAttributeValues: { ":mins": minutesUsed, ":now": endedAt },
+        }),
+      );
+    } catch {
+      // If not enough balance, deduct whatever is left
+      await ddb.send(
+        new UpdateCommand({
+          TableName: TABLE,
+          Key: { PK: `USER#${session.userId}`, SK: "CREDITS" },
+          UpdateExpression: "SET balance = :zero, updatedAt = :now",
+          ExpressionAttributeValues: { ":zero": 0, ":now": endedAt },
+        }),
+      );
+    }
+  }
+
+  // Save transcript if provided
+  if (transcript && transcript.length > 0) {
+    // Store transcript as a single item (compressed)
+    await ddb.send(
+      new PutCommand({
+        TableName: TABLE,
+        Item: {
+          PK: `SESSION#${id}`,
+          SK: "TRANSCRIPT",
+          entries: transcript,
+          createdAt: new Date().toISOString(),
+        },
+      }),
+    );
+
+    // Generate summary using Bedrock
+    try {
+      const summary = await generateSessionSummary(session, transcript);
+      await ddb.send(
+        new UpdateCommand({
+          TableName: TABLE,
+          Key: { PK: `SESSION#${id}`, SK: "META" },
+          UpdateExpression:
+            "SET #status = :status, endedAt = :endedAt, summary = :summary, minutesUsed = :mins",
+          ExpressionAttributeNames: { "#status": "status" },
+          ExpressionAttributeValues: {
+            ":status": "completed",
+            ":endedAt": endedAt,
+            ":summary": summary,
+            ":mins": minutesUsed,
+          },
+        }),
+      );
+      return ok({ success: true, summary });
+    } catch (err) {
+      log.error("Summary generation failed", { error: (err as Error).message, sessionId: id });
+    }
+  }
+
+  // Fallback: just mark completed without summary
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: `SESSION#${id}`, SK: "META" },
+      UpdateExpression: "SET #status = :status, endedAt = :endedAt, minutesUsed = :mins",
+      ExpressionAttributeNames: { "#status": "status" },
+      ExpressionAttributeValues: {
+        ":status": "completed",
+        ":endedAt": endedAt,
+        ":mins": minutesUsed,
+      },
+    }),
+  );
+  return ok({ success: true });
+}
+
+async function generateSessionSummary(
+  session: SessionItem,
+  transcript: TranscriptEntry[],
+): Promise<string> {
+  const bedrock = new BedrockRuntimeClient({ region: process.env.AWS_REGION || "eu-west-2" });
+
+  const conversationText = transcript
+    .map((e) => `${e.isTherapist ? "Therapist" : "Participant"}: ${e.content}`)
+    .join("\n");
+
+  const command = new ConverseCommand({
+    modelId: process.env.BEDROCK_MODEL_ID || "anthropic.claude-sonnet-4-6",
+    system: [
+      {
+        text: "You are a clinical note assistant. Generate a concise therapy session summary (3-5 sentences). Include: key topics discussed, emotional themes, any breakthroughs or insights, and suggested follow-up areas. Write in third person. Do not use markdown or special formatting.",
+      },
+    ],
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            text: `Therapist: ${session.therapistId}\nParticipants: ${session.participants?.names?.join(", ") || "Unknown"}\nSession focus: ${session.prompt || "General"}\n\nTranscript:\n${conversationText}\n\nPlease provide a brief session summary.`,
+          },
+        ],
+      },
+    ],
+    inferenceConfig: { maxTokens: 300, temperature: 0.3 },
+  });
+
+  const response = await bedrock.send(command);
+  return response.output?.message?.content?.[0]?.text || "";
+}

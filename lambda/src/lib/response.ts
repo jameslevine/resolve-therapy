@@ -1,3 +1,5 @@
+import type { APIGatewayProxyResult } from "aws-lambda";
+
 const headers = {
   "Content-Type": "application/json",
   "Access-Control-Allow-Origin": "*",
@@ -5,16 +7,14 @@ const headers = {
   "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
 };
 
-function ok(body) {
+export function ok(body: Record<string, unknown>): APIGatewayProxyResult {
   return { statusCode: 200, headers, body: JSON.stringify(body) };
 }
 
-function error(statusCode, message) {
+export function error(statusCode: number, message: string): APIGatewayProxyResult {
   return { statusCode, headers, body: JSON.stringify({ error: message }) };
 }
 
-function options() {
+export function options(): APIGatewayProxyResult {
   return { statusCode: 200, headers, body: "" };
 }
-
-module.exports = { ok, error, options };

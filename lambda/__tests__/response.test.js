@@ -1,4 +1,4 @@
-const { ok, error, options } = require("../lib/response");
+const { ok, error, options } = require("../dist/lib/response");
 
 describe("response helpers", () => {
   describe("ok", () => {

@@ -2,7 +2,7 @@ const mockSend = jest.fn();
 const mockSessionsCreate = jest.fn();
 const mockSessionsRetrieve = jest.fn();
 
-jest.mock("../lib/dynamo", () => ({
+jest.mock("../dist/lib/dynamo", () => ({
   ddb: { send: mockSend },
   TABLE: "test-table",
   PutCommand: jest.fn((params) => ({ type: "Put", ...params })),
@@ -24,7 +24,7 @@ jest.mock("stripe", () => {
   }));
 });
 
-const { handler } = require("../checkout");
+const { handler } = require("../dist/checkout");
 
 beforeEach(() => {
   jest.clearAllMocks();

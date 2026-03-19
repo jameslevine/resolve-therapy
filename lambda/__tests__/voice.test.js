@@ -18,7 +18,7 @@ jest.mock("@aws-sdk/client-transcribe", () => ({
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
 
-const { handler } = require("../voice");
+const { handler } = require("../dist/voice");
 
 beforeEach(() => {
   jest.clearAllMocks();

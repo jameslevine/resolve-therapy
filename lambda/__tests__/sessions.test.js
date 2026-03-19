@@ -1,7 +1,7 @@
 const mockSend = jest.fn();
 const mockGetTherapistResponse = jest.fn();
 
-jest.mock("../lib/dynamo", () => ({
+jest.mock("../dist/lib/dynamo", () => ({
   ddb: { send: mockSend },
   TABLE: "test-table",
   PutCommand: jest.fn((params) => ({ type: "Put", ...params })),
@@ -10,11 +10,11 @@ jest.mock("../lib/dynamo", () => ({
   UpdateCommand: jest.fn((params) => ({ type: "Update", ...params })),
 }));
 
-jest.mock("../lib/bedrock", () => ({
+jest.mock("../dist/lib/bedrock", () => ({
   getTherapistResponse: mockGetTherapistResponse,
 }));
 
-const { handler } = require("../sessions");
+const { handler } = require("../dist/sessions");
 
 beforeEach(() => {
   mockSend.mockReset();

@@ -5,7 +5,7 @@ jest.mock("@aws-sdk/client-bedrock-runtime", () => ({
   ConverseCommand: jest.fn((params) => ({ type: "Converse", ...params })),
 }));
 
-const { getTherapistResponse } = require("../lib/bedrock");
+const { getTherapistResponse } = require("../dist/lib/bedrock");
 
 beforeEach(() => {
   jest.clearAllMocks();

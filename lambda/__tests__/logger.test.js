@@ -1,4 +1,4 @@
-const { createLogger, loggerFromEvent } = require("../lib/logger");
+const { createLogger, loggerFromEvent } = require("../dist/lib/logger");
 
 describe("logger", () => {
   let consoleSpy;

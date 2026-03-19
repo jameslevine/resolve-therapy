@@ -90,17 +90,22 @@ print(json.dumps({'Variables': env}))
     --no-cli-pager > /dev/null 2>&1 || warn "Could not update $FUNC_NAME env"
 done
 
-# Step 4: Install Lambda dependencies & package
-log "Packaging Lambda functions..."
+# Step 4: Build TypeScript & package Lambda
+log "Building Lambda TypeScript..."
 cd "$LAMBDA_DIR"
-npm install --production
+npm install
+npm run build
 cd ..
 
-# Create zip
+log "Packaging Lambda functions..."
 LAMBDA_ZIP="/tmp/resolve-therapy-lambda.zip"
 rm -f "$LAMBDA_ZIP"
 cd "$LAMBDA_DIR"
-zip -r "$LAMBDA_ZIP" . -x "node_modules/.package-lock.json" > /dev/null
+# Package compiled JS from dist/ + node_modules (exclude dev files)
+cd dist
+zip -r "$LAMBDA_ZIP" . > /dev/null
+cd ..
+zip -r "$LAMBDA_ZIP" node_modules -x "node_modules/.package-lock.json" > /dev/null
 cd ..
 
 # Step 5: Deploy Lambda code
