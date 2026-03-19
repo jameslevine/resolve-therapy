@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TogetherTherapy
+
+AI-powered couples therapy platform available 24/7. Couples select from 30 AI therapist personalities, engage in real-time voice-based therapy sessions powered by AWS Bedrock (Claude), and receive post-session summaries with cross-session memory for continuity.
+
+## Features
+
+- **30 AI Therapists** with unique specialties, personalities, and voice profiles
+- **Real-time voice sessions** using Web Speech API and ElevenLabs TTS
+- **Two-tier AI memory** for session and cross-session continuity
+- **20 languages** with RTL support (Arabic, Hebrew)
+- **Credit-based pricing** via Stripe (60min/180min/600min packages)
+- **Session transcripts and AI-generated summaries**
+- **Full auth flow** via AWS Cognito (register, verify, login, password reset)
+
+## Tech Stack
+
+| Layer    | Technology                                             |
+| -------- | ------------------------------------------------------ |
+| Frontend | React 19, TypeScript, Vite 8, Tailwind CSS v4, Zustand |
+| Auth     | AWS Cognito User Pools                                 |
+| Backend  | 3 Lambda functions (Node.js 22.x)                      |
+| AI       | AWS Bedrock (Claude Sonnet 4.6)                        |
+| Voice    | ElevenLabs TTS, AWS Transcribe STT                     |
+| Payments | Stripe                                                 |
+| Database | DynamoDB (single-table design)                         |
+| Hosting  | S3 + CloudFront (OAC)                                  |
+| IaC      | CloudFormation                                         |
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 22.x
+- AWS CLI configured with credentials
+- Stripe account (test keys)
+- ElevenLabs API key
+
+### Local Development
 
 ```bash
+# Install frontend dependencies
+npm install
+
+# Copy and configure environment variables
+cp .env.example .env
+# Edit .env with your values
+
+# Start dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Deploy to AWS
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+./deploy.sh
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This deploys the full stack: CloudFormation infrastructure, Lambda functions, frontend to S3, and invalidates CloudFront cache.
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/                    # React frontend
+  components/           # Reusable UI components
+  pages/                # Route-level page components
+  store/                # Zustand state (auth, credits)
+  lib/                  # API client, Cognito, config, therapist data
+  i18n/                 # 20 language translation files
+  types/                # TypeScript interfaces
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+lambda/                 # Backend Lambda functions
+  sessions.js           # Session CRUD + AI responses
+  checkout.js           # Stripe payment processing
+  voice.js              # TTS (ElevenLabs) + STT (Transcribe)
+  lib/                  # Shared utilities (DynamoDB, Bedrock, responses)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+infrastructure/         # CloudFormation templates
+  template.yaml         # Full stack definition
 
-## Deploy on Vercel
+docs/                   # Project documentation
+  ROADMAP.md            # Features and milestones
+  ARCHITECTURE.md       # System design
+  API_SCHEMA.md         # API endpoint contracts
+  TOOLS_AND_TECH.md     # Technology decisions
+  TASK_LOG.md           # Progress tracking
+  DECISIONS.md          # Architecture decision records
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Documentation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See the [docs/](docs/) folder for detailed project documentation.
