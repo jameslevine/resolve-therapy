@@ -1,0 +1,6 @@
+dist
+node_modules
+lambda/node_modules
+*.zip
+public/audio
+public/images
