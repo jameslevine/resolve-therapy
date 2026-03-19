@@ -266,6 +266,7 @@
     "endSessionMessage": "Är du säker på att du vill avsluta den här sessionen? Din utskrift sparas och finns tillgänglig i din instrumentpanel.",
     "continueSession": "Fortsätt session",
     "isThinking": "{{name}} tänker...",
+    "transcribing": "Transkriberar...",
     "transcriptPlaceholder": "Sessionsutskriften visas här...",
     "muteTherapist": "Stäng av terapeuten",
     "unmuteTherapist": "Slå på terapeuten",

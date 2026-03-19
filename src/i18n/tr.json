@@ -266,6 +266,7 @@
     "endSessionMessage": "Bu seansı sonlandırmak istediğinizden emin misiniz? Transkriptiniz kaydedilecek ve kontrol panelinizde erişilebilir olacaktır.",
     "continueSession": "Seansa Devam Et",
     "isThinking": "{{name}} düşünüyor...",
+    "transcribing": "Yazıya dökülüyor...",
     "transcriptPlaceholder": "Seans transkripti burada görünecek...",
     "muteTherapist": "Terapisti sessize al",
     "unmuteTherapist": "Terapistin sesini aç",

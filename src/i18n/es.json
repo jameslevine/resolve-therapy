@@ -266,6 +266,7 @@
     "endSessionMessage": "Estas seguro de que deseas terminar esta sesion? Tu transcripcion se guardara y estara disponible en tu panel de control.",
     "continueSession": "Continuar Sesion",
     "isThinking": "{{name}} esta pensando...",
+    "transcribing": "Transcribiendo...",
     "transcriptPlaceholder": "La transcripcion de la sesion aparecera aqui...",
     "muteTherapist": "Silenciar terapeuta",
     "unmuteTherapist": "Activar terapeuta",

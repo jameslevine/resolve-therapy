@@ -266,6 +266,7 @@
     "endSessionMessage": "Apakah Anda yakin ingin mengakhiri sesi ini? Transkrip Anda akan disimpan dan tersedia di dasbor Anda.",
     "continueSession": "Lanjutkan Sesi",
     "isThinking": "{{name}} sedang berpikir...",
+    "transcribing": "Mentranskrip...",
     "transcriptPlaceholder": "Transkrip sesi akan muncul di sini...",
     "muteTherapist": "Bisukan terapis",
     "unmuteTherapist": "Aktifkan suara terapis",

@@ -83,6 +83,7 @@ async function handleSpeak(event) {
 
 async function handleTranscribe(event) {
   let audioBuffer;
+  let audioFormat = "webm";
 
   try {
     const body = event.isBase64Encoded
@@ -93,6 +94,10 @@ async function handleTranscribe(event) {
       return error(400, "audio field is required (base64-encoded)");
     }
     audioBuffer = Buffer.from(body.audio, "base64");
+    if (body.format) {
+      const allowed = ["webm", "ogg", "mp4", "mp3", "flac", "wav"];
+      audioFormat = allowed.includes(body.format) ? body.format : "webm";
+    }
   } catch (e) {
     console.error("Parse error:", e);
     return error(400, "Invalid request body");
@@ -102,8 +107,17 @@ async function handleTranscribe(event) {
     return error(400, "Empty audio data");
   }
 
+  const CONTENT_TYPES = {
+    webm: "audio/webm",
+    ogg: "audio/ogg",
+    mp4: "audio/mp4",
+    mp3: "audio/mpeg",
+    flac: "audio/flac",
+    wav: "audio/wav",
+  };
+
   const jobId = `transcribe-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const s3Key = `transcribe-audio/${jobId}.webm`;
+  const s3Key = `transcribe-audio/${jobId}.${audioFormat}`;
 
   try {
     // Upload audio to S3
@@ -111,14 +125,14 @@ async function handleTranscribe(event) {
       Bucket: BUCKET,
       Key: s3Key,
       Body: audioBuffer,
-      ContentType: "audio/webm",
+      ContentType: CONTENT_TYPES[audioFormat] || "audio/webm",
     }));
 
     // Start Transcribe job with speaker identification
     await transcribe.send(new StartTranscriptionJobCommand({
       TranscriptionJobName: jobId,
       LanguageCode: "en-GB",
-      MediaFormat: "webm",
+      MediaFormat: audioFormat,
       Media: {
         MediaFileUri: `s3://${BUCKET}/${s3Key}`,
       },
@@ -169,9 +183,9 @@ async function handleTranscribe(event) {
     if (!speakerLabels || !speakerLabels.segments) {
       // No speaker labels, return as single speaker
       if (transcript.trim()) {
-        return ok({ segments: [{ speaker: 0, text: transcript.trim() }] });
+        return ok({ transcript: transcript.trim(), segments: [{ speaker: 0, text: transcript.trim() }] });
       }
-      return ok({ segments: [] });
+      return ok({ transcript: "", segments: [] });
     }
 
     // Group by speaker segments from Transcribe
@@ -212,7 +226,11 @@ async function handleTranscribe(event) {
       }
     }
 
-    return ok({ segments: merged.filter((s) => s.text.length > 0) });
+    const filteredSegments = merged.filter((s) => s.text.length > 0);
+    return ok({
+      transcript,
+      segments: filteredSegments,
+    });
   } finally {
     // Cleanup S3 audio file
     try {

@@ -162,9 +162,54 @@ describe("voice handler", () => {
 
       expect(result.statusCode).toBe(200);
       const body = JSON.parse(result.body);
+      expect(body.transcript).toBe("I feel unheard");
       expect(body.segments).toBeDefined();
       expect(body.segments.length).toBeGreaterThan(0);
       expect(body.segments[0].speaker).toBe(0);
+    });
+
+    it("uses format parameter for media type", async () => {
+      mockS3Send.mockResolvedValue({});
+
+      const transcriptResult = {
+        results: {
+          transcripts: [{ transcript: "test" }],
+          items: [],
+          speaker_labels: null,
+        },
+      };
+
+      mockTranscribeSend
+        .mockResolvedValueOnce({})
+        .mockResolvedValueOnce({
+          TranscriptionJob: {
+            TranscriptionJobStatus: "COMPLETED",
+            Transcript: { TranscriptFileUri: "https://s3.amazonaws.com/transcript.json" },
+          },
+        });
+
+      mockFetch.mockResolvedValue({
+        json: () => Promise.resolve(transcriptResult),
+      });
+
+      const audioBase64 = Buffer.from("fake-audio-data").toString("base64");
+      await handler({
+        httpMethod: "POST",
+        path: "/voice/transcribe",
+        body: JSON.stringify({ audio: audioBase64, format: "mp4" }),
+        isBase64Encoded: false,
+      });
+
+      // Verify S3 upload used correct content type
+      const { PutObjectCommand } = require("@aws-sdk/client-s3");
+      const putCall = PutObjectCommand.mock.calls[PutObjectCommand.mock.calls.length - 1][0];
+      expect(putCall.ContentType).toBe("audio/mp4");
+      expect(putCall.Key).toMatch(/\.mp4$/);
+
+      // Verify Transcribe job used correct format
+      const { StartTranscriptionJobCommand } = require("@aws-sdk/client-transcribe");
+      const transcribeCall = StartTranscriptionJobCommand.mock.calls[StartTranscriptionJobCommand.mock.calls.length - 1][0];
+      expect(transcribeCall.MediaFormat).toBe("mp4");
     });
 
     it("returns 400 when audio is missing", async () => {

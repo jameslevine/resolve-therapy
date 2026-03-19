@@ -3,37 +3,8 @@ import { Mic, MicOff, Phone, Volume2, VolumeX, Clock, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { TherapistProfile, TranscriptEntry, ParticipantInfo } from "@/types";
 import { apiFetch } from "@/lib/api";
+import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import TranscriptPanel from "./TranscriptPanel";
-
-interface SpeechRecognitionResult {
-  readonly isFinal: boolean;
-  readonly [index: number]: { readonly transcript: string };
-}
-
-interface SpeechRecognitionResultList {
-  readonly length: number;
-  readonly [index: number]: SpeechRecognitionResult;
-}
-
-interface SpeechRecognitionEvent {
-  readonly resultIndex: number;
-  readonly results: SpeechRecognitionResultList;
-}
-
-interface SpeechRecognitionErrorEvent {
-  readonly error: string;
-}
-
-interface SpeechRecognitionInstance {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  onresult: ((event: SpeechRecognitionEvent) => void) | null;
-  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
-  onend: (() => void) | null;
-  start(): void;
-  stop(): void;
-}
 
 interface SessionInterfaceProps {
   sessionId: string;
@@ -65,11 +36,9 @@ export default function SessionInterface({
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [interimText, setInterimText] = useState("");
 
-  const streamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fullTranscriptRef = useRef<TranscriptEntry[]>([]);
-  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const responseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTTSPlayingRef = useRef(false);
 
@@ -116,13 +85,7 @@ export default function SessionInterface({
 
       try {
         isTTSPlayingRef.current = true;
-        if (recognitionRef.current) {
-          try {
-            recognitionRef.current.stop();
-          } catch {
-            /* already stopped */
-          }
-        }
+        voiceRecorder.pause();
         setIsSpeaking(true);
 
         const response = await fetch(audioUrl);
@@ -137,13 +100,7 @@ export default function SessionInterface({
           source.onended = () => {
             setIsSpeaking(false);
             isTTSPlayingRef.current = false;
-            if (recognitionRef.current) {
-              try {
-                recognitionRef.current.start();
-              } catch {
-                /* ignore */
-              }
-            }
+            voiceRecorder.resume();
             resolve();
           };
           source.start(0);
@@ -152,15 +109,10 @@ export default function SessionInterface({
         console.error("Audio playback error:", err);
         setIsSpeaking(false);
         isTTSPlayingRef.current = false;
-        if (recognitionRef.current) {
-          try {
-            recognitionRef.current.start();
-          } catch {
-            /* ignore */
-          }
-        }
+        voiceRecorder.resume();
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [isMuted],
   );
 
@@ -217,87 +169,29 @@ export default function SessionInterface({
     [sessionId, therapist.id, sessionPrompt, participants, addTranscriptEntry, playAudio],
   );
 
-  const startRecording = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
+  const handleTranscript = useCallback(
+    (text: string) => {
+      addTranscriptEntry(text, false);
+      setInterimText("");
 
-      const windowWithSpeech = window as unknown as Record<string, unknown>;
-      const SpeechRecognition = (windowWithSpeech.SpeechRecognition ||
-        windowWithSpeech.webkitSpeechRecognition) as
-        | (new () => SpeechRecognitionInstance)
-        | undefined;
-      if (!SpeechRecognition) {
-        console.error("SpeechRecognition not supported in this browser");
-        return;
-      }
+      if (responseTimeoutRef.current) clearTimeout(responseTimeoutRef.current);
+      responseTimeoutRef.current = setTimeout(() => {
+        getTherapistResponse(fullTranscriptRef.current);
+      }, THERAPIST_RESPONSE_DELAY);
+    },
+    [addTranscriptEntry, getTherapistResponse],
+  );
 
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = "en-GB";
-
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
-        let interim = "";
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          if (event.results[i].isFinal) {
-            const text = event.results[i][0].transcript.trim();
-            if (text) {
-              addTranscriptEntry(text, false);
-              setInterimText("");
-
-              if (responseTimeoutRef.current) clearTimeout(responseTimeoutRef.current);
-              responseTimeoutRef.current = setTimeout(() => {
-                getTherapistResponse(fullTranscriptRef.current);
-              }, THERAPIST_RESPONSE_DELAY);
-            }
-          } else {
-            interim += event.results[i][0].transcript;
-          }
-        }
-        if (interim) setInterimText(interim);
-      };
-
-      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-        console.error("Speech recognition error:", event.error);
-      };
-
-      recognition.onend = () => {
-        if (streamRef.current && !isTTSPlayingRef.current) {
-          try {
-            recognition.start();
-          } catch {
-            /* ignore */
-          }
-        }
-      };
-
-      recognition.start();
-      recognitionRef.current = recognition;
-    } catch (err) {
-      console.error("Microphone access error:", err);
-    }
-  }, [addTranscriptEntry, getTherapistResponse]);
-
-  const stopRecording = useCallback(() => {
-    if (responseTimeoutRef.current) {
-      clearTimeout(responseTimeoutRef.current);
-      responseTimeoutRef.current = null;
-    }
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch {
-        /* ignore */
-      }
-      recognitionRef.current = null;
-    }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-    setInterimText("");
+  const handleInterim = useCallback((text: string) => {
+    setInterimText(text);
   }, []);
+
+  const voiceRecorder = useVoiceRecorder({
+    onTranscript: handleTranscript,
+    onInterim: handleInterim,
+    silenceDuration: 1500,
+    volumeThreshold: 15,
+  });
 
   const handleStart = useCallback(async () => {
     setStarted(true);
@@ -329,24 +223,23 @@ export default function SessionInterface({
       addTranscriptEntry(greeting, true);
     }
 
-    await startRecording();
-  }, [therapist, sessionPrompt, participants, addTranscriptEntry, playAudio, startRecording]);
+    await voiceRecorder.start();
+  }, [therapist, sessionPrompt, participants, addTranscriptEntry, playAudio, voiceRecorder]);
 
   const toggleMic = useCallback(() => {
     if (isMicOn) {
-      stopRecording();
+      voiceRecorder.stop();
     } else {
-      startRecording();
+      voiceRecorder.start();
     }
     setIsMicOn((prev) => !prev);
-  }, [isMicOn, stopRecording, startRecording]);
+  }, [isMicOn, voiceRecorder]);
 
   const handleEndSession = useCallback(async () => {
-    stopRecording();
+    voiceRecorder.stop();
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     setShowEndModal(false);
 
-    // Send transcript to backend for storage and summary generation
     try {
       await apiFetch(`/sessions/${sessionId}/end`, {
         method: "POST",
@@ -363,15 +256,16 @@ export default function SessionInterface({
     }
 
     window.location.href = "/dashboard";
-  }, [stopRecording, sessionId]);
+  }, [voiceRecorder, sessionId]);
 
   useEffect(() => {
     return () => {
-      stopRecording();
+      voiceRecorder.stop();
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
       if (audioContextRef.current) audioContextRef.current.close();
     };
-  }, [stopRecording]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // --- Ready to begin ---
   if (!started) {
@@ -462,6 +356,26 @@ export default function SessionInterface({
         {interimText && (
           <div className="px-6 py-2">
             <span className="text-sm italic text-stone-400">{interimText}...</span>
+          </div>
+        )}
+
+        {voiceRecorder.isTranscribing && (
+          <div className="flex items-center gap-2 px-6 py-2">
+            <div className="flex items-center gap-1">
+              <div
+                className="h-1.5 w-1.5 animate-bounce rounded-full bg-stone-400"
+                style={{ animationDelay: "0ms" }}
+              />
+              <div
+                className="h-1.5 w-1.5 animate-bounce rounded-full bg-stone-400"
+                style={{ animationDelay: "150ms" }}
+              />
+              <div
+                className="h-1.5 w-1.5 animate-bounce rounded-full bg-stone-400"
+                style={{ animationDelay: "300ms" }}
+              />
+            </div>
+            <span className="text-xs text-stone-400">{t("session.transcribing")}</span>
           </div>
         )}
 

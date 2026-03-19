@@ -266,6 +266,7 @@
     "endSessionMessage": "このセッションを終了してもよいですか？トランスクリプトが保存され、ダッシュボードでご覧いただけます。",
     "continueSession": "セッションを続ける",
     "isThinking": "{{name}}が考えています...",
+    "transcribing": "文字起こし中...",
     "transcriptPlaceholder": "セッションのトランスクリプトがここに表示されます...",
     "muteTherapist": "セラピストをミュートする",
     "unmuteTherapist": "セラピストのミュートを解除する",

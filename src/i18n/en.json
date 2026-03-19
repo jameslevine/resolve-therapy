@@ -266,6 +266,7 @@
     "endSessionMessage": "Are you sure you want to end this session? Your transcript will be saved and available in your dashboard.",
     "continueSession": "Continue Session",
     "isThinking": "{{name}} is thinking...",
+    "transcribing": "Transcribing...",
     "transcriptPlaceholder": "Session transcript will appear here...",
     "muteTherapist": "Mute therapist",
     "unmuteTherapist": "Unmute therapist",

@@ -266,6 +266,7 @@
     "endSessionMessage": "Bạn có chắc chắn muốn kết thúc phiên này không? Bản ghi của bạn sẽ được lưu và có thể truy cập trong bảng điều khiển.",
     "continueSession": "Tiếp Tục Phiên",
     "isThinking": "{{name}} đang suy nghĩ...",
+    "transcribing": "Đang phiên âm...",
     "transcriptPlaceholder": "Bản ghi phiên sẽ xuất hiện ở đây...",
     "muteTherapist": "Tắt tiếng chuyên gia trị liệu",
     "unmuteTherapist": "Bật tiếng chuyên gia trị liệu",

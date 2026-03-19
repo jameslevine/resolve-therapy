@@ -266,6 +266,7 @@
     "endSessionMessage": "È sicuro di voler terminare questa sessione? La trascrizione verrà salvata e sarà disponibile nella sua dashboard.",
     "continueSession": "Continua Sessione",
     "isThinking": "{{name}} sta elaborando...",
+    "transcribing": "Trascrizione in corso...",
     "transcriptPlaceholder": "La trascrizione della sessione apparirà qui...",
     "muteTherapist": "Silenzia il terapeuta",
     "unmuteTherapist": "Riattiva il terapeuta",

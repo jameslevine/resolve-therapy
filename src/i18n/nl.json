@@ -266,6 +266,7 @@
     "endSessionMessage": "Weet u zeker dat u deze sessie wilt beëindigen? Uw transcript wordt opgeslagen en is beschikbaar in uw dashboard.",
     "continueSession": "Sessie voortzetten",
     "isThinking": "{{name}} denkt na...",
+    "transcribing": "Transcriberen...",
     "transcriptPlaceholder": "Het sessietranscript verschijnt hier...",
     "muteTherapist": "Therapeut dempen",
     "unmuteTherapist": "Therapeut dempen opheffen",

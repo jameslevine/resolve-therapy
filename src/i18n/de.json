@@ -266,6 +266,7 @@
     "endSessionMessage": "Sind Sie sicher, dass Sie diese Sitzung beenden möchten? Ihr Transkript wird gespeichert und ist in Ihrem Dashboard verfügbar.",
     "continueSession": "Sitzung fortsetzen",
     "isThinking": "{{name}} denkt nach...",
+    "transcribing": "Wird transkribiert...",
     "transcriptPlaceholder": "Das Sitzungsprotokoll wird hier angezeigt...",
     "muteTherapist": "Therapeuten stummschalten",
     "unmuteTherapist": "Therapeuten Stummschaltung aufheben",

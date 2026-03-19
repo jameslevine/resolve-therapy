@@ -266,6 +266,7 @@
     "endSessionMessage": "هل أنت متأكد من رغبتك في إنهاء هذه الجلسة؟ سيتم حفظ النص وسيكون متاحاً في لوحة التحكم.",
     "continueSession": "متابعة الجلسة",
     "isThinking": "{{name}} يفكر...",
+    "transcribing": "جارٍ النسخ...",
     "transcriptPlaceholder": "سيظهر نص الجلسة هنا...",
     "muteTherapist": "كتم المعالج",
     "unmuteTherapist": "إلغاء كتم المعالج",

@@ -266,6 +266,7 @@
     "endSessionMessage": "您确定要结束本次咨询吗？您的文字记录将被保存并可在控制台中查看。",
     "continueSession": "继续咨询",
     "isThinking": "{{name}} 正在思考……",
+    "transcribing": "正在转录...",
     "transcriptPlaceholder": "咨询文字记录将显示在此处……",
     "muteTherapist": "静音咨询师",
     "unmuteTherapist": "取消静音咨询师",

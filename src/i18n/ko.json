@@ -266,6 +266,7 @@
     "endSessionMessage": "이 세션을 종료하시겠습니까? 기록이 저장되어 대시보드에서 확인하실 수 있습니다.",
     "continueSession": "세션 계속",
     "isThinking": "{{name}}이(가) 생각 중입니다...",
+    "transcribing": "전사 중...",
     "transcriptPlaceholder": "세션 기록이 여기에 표시됩니다...",
     "muteTherapist": "치료사 음소거",
     "unmuteTherapist": "치료사 음소거 해제",

@@ -266,6 +266,7 @@
     "endSessionMessage": "האם אתם בטוחים שברצונכם לסיים את הפגישה? התמליל שלכם יישמר ויהיה זמין בלוח הבקרה.",
     "continueSession": "המשיכו בפגישה",
     "isThinking": "{{name}} חושב...",
+    "transcribing": "מתמלל...",
     "transcriptPlaceholder": "תמליל הפגישה יופיע כאן...",
     "muteTherapist": "השתק מטפל",
     "unmuteTherapist": "בטל השתקת מטפל",
