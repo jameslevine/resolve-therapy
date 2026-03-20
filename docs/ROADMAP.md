@@ -33,25 +33,25 @@ TogetherTherapy is an AI-powered couples therapy platform providing 24/7 accessi
 
 ## Phase 2: Foundation & Quality
 
-| Feature                                                    | Priority | Status      |
-| ---------------------------------------------------------- | -------- | ----------- |
-| Project documentation (docs/ folder)                       | P0       | In Progress |
-| Fix .env.example and README.md                             | P0       | Not Started |
-| Set up Husky + commitlint + Prettier + lint-staged         | P1       | Not Started |
-| Sync backend therapist data (30 therapists in sessions.js) | P1       | Not Started |
-| Initial git commit of all work                             | P0       | Not Started |
-| Add unit tests for Lambda handlers                         | P1       | Not Started |
-| Add unit tests for React components                        | P1       | Not Started |
+| Feature                                                    | Priority | Status   |
+| ---------------------------------------------------------- | -------- | -------- |
+| Project documentation (docs/ folder)                       | P0       | Complete |
+| Fix .env.example and README.md                             | P0       | Complete |
+| Set up Husky + commitlint + Prettier + lint-staged         | P1       | Complete |
+| Sync backend therapist data (30 therapists in sessions.ts) | P1       | Complete |
+| Initial git commit of all work                             | P0       | Complete |
+| Add unit tests for Lambda handlers (61 tests)              | P1       | Complete |
+| Add unit tests for React components (24 tests)             | P1       | Complete |
 
 ## Phase 3: Reliability & Polish
 
-| Feature                                                    | Priority | Status      |
-| ---------------------------------------------------------- | -------- | ----------- |
-| Replace Web Speech API with consistent AWS Transcribe flow | P1       | Not Started |
-| Structured error handling and CloudWatch monitoring        | P1       | Not Started |
-| Migrate Lambda to TypeScript with Express + Joi            | P2       | Not Started |
-| Loading/error states and edge case handling                | P2       | Not Started |
-| Stripe webhook signature verification (enforce)            | P2       | Not Started |
+| Feature                                                    | Priority | Status   |
+| ---------------------------------------------------------- | -------- | -------- |
+| Replace Web Speech API with MediaRecorder + AWS Transcribe | P1       | Complete |
+| Structured JSON logging and CloudWatch monitoring          | P1       | Complete |
+| Migrate Lambda to TypeScript                               | P2       | Complete |
+| Loading/error states and edge case handling                | P2       | Complete |
+| Stripe webhook signature verification (enforce)            | P2       | Complete |
 
 ## Phase 4: Features & Growth
 
@@ -67,6 +67,10 @@ TogetherTherapy is an AI-powered couples therapy platform providing 24/7 accessi
 
 ## Completed Tasks
 
-| Date    | Task                                                          |
-| ------- | ------------------------------------------------------------- |
-| 2026-03 | Full MVP built: frontend, backend, infrastructure, deployment |
+| Date       | Task                                                          |
+| ---------- | ------------------------------------------------------------- |
+| 2026-03    | Full MVP built: frontend, backend, infrastructure, deployment |
+| 2026-03-19 | Phase 2: Documentation, tooling, tests (85 tests total)       |
+| 2026-03-19 | Phase 3: Web Speech → MediaRecorder + AWS Transcribe          |
+| 2026-03-19 | Phase 3: Structured JSON logging + CloudWatch monitoring      |
+| 2026-03-19 | Phase 3: Lambda JS → TypeScript migration                     |

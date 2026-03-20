@@ -1,7 +1,16 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Clock, FileText, ArrowRight, Loader2, CreditCard, Plus } from "lucide-react";
+import {
+  Clock,
+  FileText,
+  ArrowRight,
+  Loader2,
+  CreditCard,
+  Plus,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-react";
 import { apiFetch } from "../lib/api";
 import { THERAPIST_PROFILES } from "../lib/therapists-data";
 import { useAuthStore } from "@/store/auth";
@@ -21,27 +30,31 @@ export default function Dashboard() {
   const { balance, fetchBalance } = useCreditsStore();
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user?.sub) fetchBalance(user.sub);
   }, [user?.sub, fetchBalance]);
 
-  useEffect(() => {
+  const loadSessions = async () => {
     if (!user?.sub) return;
-    const fetchSessions = async () => {
-      try {
-        const res = await apiFetch(`/sessions?userId=${encodeURIComponent(user!.sub)}`);
-        if (res.ok) {
-          const data = await res.json();
-          setSessions(data.sessions || []);
-        }
-      } catch {
-        // API not available yet
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSessions();
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiFetch(`/sessions?userId=${encodeURIComponent(user.sub)}`);
+      if (!res.ok) throw new Error(t("dashboard.fetchError"));
+      const data = await res.json();
+      setSessions(data.sessions || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("dashboard.fetchError"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSessions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.sub]);
 
   const getTherapistName = (therapistId: string) => {
@@ -93,6 +106,18 @@ export default function Dashboard() {
           {loading ? (
             <div className="flex items-center justify-center py-24">
               <Loader2 className="h-8 w-8 animate-spin text-rose-500" />
+            </div>
+          ) : error ? (
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-8 py-12 text-center">
+              <AlertCircle className="mx-auto h-10 w-10 text-red-400" />
+              <p className="mt-3 font-medium text-red-800">{error}</p>
+              <button
+                onClick={loadSessions}
+                className="mt-4 inline-flex items-center gap-2 rounded-full border border-red-200 bg-white px-5 py-2.5 text-sm font-medium text-red-700 transition hover:bg-red-50"
+              >
+                <RefreshCw className="h-4 w-4" />
+                {t("common.retry")}
+              </button>
             </div>
           ) : sessions.length === 0 ? (
             <div className="rounded-2xl border border-stone-200 bg-white px-8 py-16 text-center">

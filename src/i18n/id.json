@@ -15,7 +15,8 @@
     "crisisLifeline": "Saluran Darurat Bunuh Diri & Krisis 119",
     "forImmediateSupport": "untuk dukungan segera.",
     "back": "Kembali",
-    "newSession": "Sesi Baru"
+    "newSession": "Sesi Baru",
+    "retry": "Coba Lagi"
   },
   "wizard": {
     "chooseTherapist": "Pilih Terapis Anda",
@@ -272,7 +273,8 @@
     "unmuteTherapist": "Aktifkan suara terapis",
     "muteMic": "Bisukan mikrofon",
     "unmuteMic": "Aktifkan mikrofon",
-    "you": "Anda"
+    "you": "Anda",
+    "responseError": "Terjadi kesalahan saat mendapatkan respons terapis. Silakan coba berbicara lagi."
   },
   "therapists": {
     "title": "Temui",
@@ -304,7 +306,8 @@
     "noSessions": "Belum ada sesi",
     "noSessionsDesc": "Buat sesi pertama Anda untuk memulai.",
     "browseTherapists": "Jelajahi Terapis",
-    "unknownTherapist": "Terapis Tidak Dikenal"
+    "unknownTherapist": "Terapis Tidak Dikenal",
+    "fetchError": "Gagal memuat sesi Anda. Silakan coba lagi."
   },
   "account": {
     "title": "Pengaturan Akun",

@@ -15,7 +15,8 @@
     "crisisLifeline": "3114 Numéro National de Prévention du Suicide",
     "forImmediateSupport": "pour une aide immédiate.",
     "back": "Retour",
-    "newSession": "Nouvelle séance"
+    "newSession": "Nouvelle séance",
+    "retry": "Réessayer"
   },
   "wizard": {
     "chooseTherapist": "Choisissez votre thérapeute",
@@ -272,7 +273,8 @@
     "unmuteTherapist": "Réactiver le son du thérapeute",
     "muteMic": "Couper le microphone",
     "unmuteMic": "Réactiver le microphone",
-    "you": "Vous"
+    "you": "Vous",
+    "responseError": "Un problème est survenu lors de la réponse du thérapeute. Veuillez réessayer de parler."
   },
   "therapists": {
     "title": "Rencontrez nos",
@@ -304,7 +306,8 @@
     "noSessions": "Aucune séance pour le moment",
     "noSessionsDesc": "Réservez votre première séance pour commencer.",
     "browseTherapists": "Parcourir les thérapeutes",
-    "unknownTherapist": "Thérapeute inconnu"
+    "unknownTherapist": "Thérapeute inconnu",
+    "fetchError": "Impossible de charger vos séances. Veuillez réessayer."
   },
   "account": {
     "title": "Paramètres du compte",

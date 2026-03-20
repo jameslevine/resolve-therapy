@@ -15,7 +15,8 @@
     "crisisLifeline": "Telefonseelsorge 0800 111 0 111",
     "forImmediateSupport": "für sofortige Unterstützung an.",
     "back": "Zurück",
-    "newSession": "Neue Sitzung"
+    "newSession": "Neue Sitzung",
+    "retry": "Erneut versuchen"
   },
   "wizard": {
     "chooseTherapist": "Wählen Sie Ihren Therapeuten",
@@ -272,7 +273,8 @@
     "unmuteTherapist": "Therapeuten Stummschaltung aufheben",
     "muteMic": "Mikrofon stummschalten",
     "unmuteMic": "Mikrofon Stummschaltung aufheben",
-    "you": "Sie"
+    "you": "Sie",
+    "responseError": "Beim Abrufen der Antwort des Therapeuten ist ein Fehler aufgetreten. Bitte versuchen Sie erneut zu sprechen."
   },
   "therapists": {
     "title": "Lernen Sie unsere",
@@ -304,7 +306,8 @@
     "noSessions": "Noch keine Sitzungen",
     "noSessionsDesc": "Buchen Sie Ihre erste Sitzung, um loszulegen.",
     "browseTherapists": "Therapeuten durchsuchen",
-    "unknownTherapist": "Unbekannter Therapeut"
+    "unknownTherapist": "Unbekannter Therapeut",
+    "fetchError": "Ihre Sitzungen konnten nicht geladen werden. Bitte versuchen Sie es erneut."
   },
   "account": {
     "title": "Kontoeinstellungen",

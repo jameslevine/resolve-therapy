@@ -15,7 +15,8 @@
     "crisisLifeline": "خط الأزمات 988",
     "forImmediateSupport": "للحصول على دعم فوري.",
     "back": "رجوع",
-    "newSession": "جلسة جديدة"
+    "newSession": "جلسة جديدة",
+    "retry": "حاول مرة أخرى"
   },
   "wizard": {
     "chooseTherapist": "اختر معالجك",
@@ -272,7 +273,8 @@
     "unmuteTherapist": "إلغاء كتم المعالج",
     "muteMic": "كتم الميكروفون",
     "unmuteMic": "إلغاء كتم الميكروفون",
-    "you": "أنت"
+    "you": "أنت",
+    "responseError": "حدث خطأ أثناء الحصول على رد المعالج. يرجى المحاولة بالتحدث مرة أخرى."
   },
   "therapists": {
     "title": "تعرف على",
@@ -304,7 +306,8 @@
     "noSessions": "لا توجد جلسات بعد",
     "noSessionsDesc": "احجز جلستك الأولى للبدء.",
     "browseTherapists": "تصفح المعالجين",
-    "unknownTherapist": "معالج غير معروف"
+    "unknownTherapist": "معالج غير معروف",
+    "fetchError": "فشل تحميل جلساتك. يرجى المحاولة مرة أخرى."
   },
   "account": {
     "title": "إعدادات الحساب",

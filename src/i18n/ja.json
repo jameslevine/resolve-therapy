@@ -15,7 +15,8 @@
     "crisisLifeline": "988 自殺・危機ライフライン",
     "forImmediateSupport": "にお電話またはテキストメッセージでご連絡ください。",
     "back": "戻る",
-    "newSession": "新しいセッション"
+    "newSession": "新しいセッション",
+    "retry": "もう一度試す"
   },
   "wizard": {
     "chooseTherapist": "セラピストを選ぶ",
@@ -272,7 +273,8 @@
     "unmuteTherapist": "セラピストのミュートを解除する",
     "muteMic": "マイクをミュートする",
     "unmuteMic": "マイクのミュートを解除する",
-    "you": "あなた"
+    "you": "あなた",
+    "responseError": "セラピストの応答の取得中に問題が発生しました。もう一度話しかけてください。"
   },
   "therapists": {
     "title": "セラピストに",
@@ -304,7 +306,8 @@
     "noSessions": "まだセッションがありません",
     "noSessionsDesc": "最初のセッションを予約して始めましょう。",
     "browseTherapists": "セラピストを探す",
-    "unknownTherapist": "不明なセラピスト"
+    "unknownTherapist": "不明なセラピスト",
+    "fetchError": "セッションの読み込みに失敗しました。もう一度お試しください。"
   },
   "account": {
     "title": "アカウント設定",

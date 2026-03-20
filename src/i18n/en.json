@@ -15,7 +15,8 @@
     "crisisLifeline": "988 Suicide & Crisis Lifeline",
     "forImmediateSupport": "for immediate support.",
     "back": "Back",
-    "newSession": "New Session"
+    "newSession": "New Session",
+    "retry": "Try Again"
   },
   "wizard": {
     "chooseTherapist": "Choose Your Therapist",
@@ -272,7 +273,8 @@
     "unmuteTherapist": "Unmute therapist",
     "muteMic": "Mute microphone",
     "unmuteMic": "Unmute microphone",
-    "you": "You"
+    "you": "You",
+    "responseError": "Something went wrong getting the therapist's response. Please try speaking again."
   },
   "therapists": {
     "title": "Meet Our",
@@ -304,7 +306,8 @@
     "noSessions": "No sessions yet",
     "noSessionsDesc": "Book your first session to get started.",
     "browseTherapists": "Browse Therapists",
-    "unknownTherapist": "Unknown Therapist"
+    "unknownTherapist": "Unknown Therapist",
+    "fetchError": "Failed to load your sessions. Please try again."
   },
   "account": {
     "title": "Account Settings",

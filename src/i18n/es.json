@@ -15,7 +15,8 @@
     "crisisLifeline": "Linea de Crisis 988",
     "forImmediateSupport": "para apoyo inmediato.",
     "back": "Atras",
-    "newSession": "Nueva Sesion"
+    "newSession": "Nueva Sesion",
+    "retry": "Intentar de nuevo"
   },
   "wizard": {
     "chooseTherapist": "Elige Tu Terapeuta",
@@ -272,7 +273,8 @@
     "unmuteTherapist": "Activar terapeuta",
     "muteMic": "Silenciar microfono",
     "unmuteMic": "Activar microfono",
-    "you": "Tu"
+    "you": "Tu",
+    "responseError": "Algo salio mal al obtener la respuesta del terapeuta. Por favor, intenta hablar de nuevo."
   },
   "therapists": {
     "title": "Conoce a Nuestros",
@@ -304,7 +306,8 @@
     "noSessions": "Sin sesiones aun",
     "noSessionsDesc": "Reserva tu primera sesion para comenzar.",
     "browseTherapists": "Explorar Terapeutas",
-    "unknownTherapist": "Terapeuta Desconocido"
+    "unknownTherapist": "Terapeuta Desconocido",
+    "fetchError": "No se pudieron cargar tus sesiones. Por favor, intentalo de nuevo."
   },
   "account": {
     "title": "Configuracion de Cuenta",

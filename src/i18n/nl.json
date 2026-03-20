@@ -15,7 +15,8 @@
     "crisisLifeline": "988 Zelfmoordhulplijn",
     "forImmediateSupport": "voor onmiddellijke ondersteuning.",
     "back": "Terug",
-    "newSession": "Nieuwe sessie"
+    "newSession": "Nieuwe sessie",
+    "retry": "Opnieuw proberen"
   },
   "wizard": {
     "chooseTherapist": "Kies uw therapeut",
@@ -272,7 +273,8 @@
     "unmuteTherapist": "Therapeut dempen opheffen",
     "muteMic": "Microfoon dempen",
     "unmuteMic": "Microfoon dempen opheffen",
-    "you": "U"
+    "you": "U",
+    "responseError": "Er ging iets mis bij het ophalen van het antwoord van de therapeut. Probeer opnieuw te spreken."
   },
   "therapists": {
     "title": "Ontmoet onze",
@@ -304,7 +306,8 @@
     "noSessions": "Nog geen sessies",
     "noSessionsDesc": "Boek uw eerste sessie om aan de slag te gaan.",
     "browseTherapists": "Therapeuten bekijken",
-    "unknownTherapist": "Onbekende therapeut"
+    "unknownTherapist": "Onbekende therapeut",
+    "fetchError": "Uw sessies konden niet worden geladen. Probeer het opnieuw."
   },
   "account": {
     "title": "Accountinstellingen",

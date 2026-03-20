@@ -15,7 +15,8 @@
     "crisisLifeline": "988 Suicide & Crisis Lifeline",
     "forImmediateSupport": "aby uzyskać natychmiastowe wsparcie.",
     "back": "Wstecz",
-    "newSession": "Nowa sesja"
+    "newSession": "Nowa sesja",
+    "retry": "Spróbuj ponownie"
   },
   "wizard": {
     "chooseTherapist": "Wybierz swojego terapeutę",
@@ -272,7 +273,8 @@
     "unmuteTherapist": "Włącz dźwięk terapeuty",
     "muteMic": "Wycisz mikrofon",
     "unmuteMic": "Włącz mikrofon",
-    "you": "Ty"
+    "you": "Ty",
+    "responseError": "Coś poszło nie tak podczas uzyskiwania odpowiedzi terapeuty. Spróbuj ponownie mówić."
   },
   "therapists": {
     "title": "Poznaj naszych",
@@ -304,7 +306,8 @@
     "noSessions": "Brak sesji",
     "noSessionsDesc": "Zarezerwuj swoją pierwszą sesję, aby zacząć.",
     "browseTherapists": "Przeglądaj terapeutów",
-    "unknownTherapist": "Nieznany terapeuta"
+    "unknownTherapist": "Nieznany terapeuta",
+    "fetchError": "Nie udało się załadować sesji. Spróbuj ponownie."
   },
   "account": {
     "title": "Ustawienia konta",

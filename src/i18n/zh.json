@@ -15,7 +15,8 @@
     "crisisLifeline": "988 自杀与危机援助热线",
     "forImmediateSupport": "以获得即时支持。",
     "back": "返回",
-    "newSession": "新咨询"
+    "newSession": "新咨询",
+    "retry": "重试"
   },
   "wizard": {
     "chooseTherapist": "选择您的咨询师",
@@ -272,7 +273,8 @@
     "unmuteTherapist": "取消静音咨询师",
     "muteMic": "静音麦克风",
     "unmuteMic": "取消静音麦克风",
-    "you": "您"
+    "you": "您",
+    "responseError": "获取咨询师回复时出现问题，请再次尝试说话。"
   },
   "therapists": {
     "title": "认识我们的",
@@ -304,7 +306,8 @@
     "noSessions": "暂无咨询记录",
     "noSessionsDesc": "预约您的第一次咨询以开始。",
     "browseTherapists": "浏览咨询师",
-    "unknownTherapist": "未知咨询师"
+    "unknownTherapist": "未知咨询师",
+    "fetchError": "无法加载您的咨询记录，请重试。"
   },
   "account": {
     "title": "账户设置",

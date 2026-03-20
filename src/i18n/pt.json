@@ -15,7 +15,8 @@
     "crisisLifeline": "CVV - Centro de Valorização da Vida: 188",
     "forImmediateSupport": "para suporte imediato.",
     "back": "Voltar",
-    "newSession": "Nova Sessão"
+    "newSession": "Nova Sessão",
+    "retry": "Tentar novamente"
   },
   "wizard": {
     "chooseTherapist": "Escolha Seu Terapeuta",
@@ -272,7 +273,8 @@
     "unmuteTherapist": "Ativar som do terapeuta",
     "muteMic": "Silenciar microfone",
     "unmuteMic": "Ativar microfone",
-    "you": "Você"
+    "you": "Você",
+    "responseError": "Algo deu errado ao obter a resposta do terapeuta. Por favor, tente falar novamente."
   },
   "therapists": {
     "title": "Conheça Nossos",
@@ -304,7 +306,8 @@
     "noSessions": "Nenhuma sessão ainda",
     "noSessionsDesc": "Agende sua primeira sessão para começar.",
     "browseTherapists": "Ver Terapeutas",
-    "unknownTherapist": "Terapeuta Desconhecido"
+    "unknownTherapist": "Terapeuta Desconhecido",
+    "fetchError": "Não foi possível carregar suas sessões. Por favor, tente novamente."
   },
   "account": {
     "title": "Configurações da Conta",

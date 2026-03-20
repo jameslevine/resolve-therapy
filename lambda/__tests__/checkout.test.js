@@ -24,6 +24,8 @@ jest.mock("stripe", () => {
   }));
 });
 
+process.env.STRIPE_WEBHOOK_SECRET = "whsec_test_secret";
+
 const { handler } = require("../dist/checkout");
 
 beforeEach(() => {
@@ -164,7 +166,7 @@ describe("checkout handler", () => {
       const result = await handler({
         httpMethod: "POST",
         path: "/checkout/webhook",
-        headers: {},
+        headers: { "Stripe-Signature": "t=123,v1=abc" },
         body: JSON.stringify({
           type: "checkout.session.completed",
           data: {
@@ -178,6 +180,17 @@ describe("checkout handler", () => {
 
       expect(result.statusCode).toBe(200);
       expect(JSON.parse(result.body)).toEqual({ received: true });
+    });
+
+    it("returns 400 when Stripe-Signature header is missing", async () => {
+      const result = await handler({
+        httpMethod: "POST",
+        path: "/checkout/webhook",
+        headers: {},
+        body: JSON.stringify({ type: "checkout.session.completed" }),
+      });
+      expect(result.statusCode).toBe(400);
+      expect(JSON.parse(result.body).error).toContain("Missing signature");
     });
   });
 

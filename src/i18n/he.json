@@ -15,7 +15,8 @@
     "crisisLifeline": "קו החיים לאובדנות ומשבר 988",
     "forImmediateSupport": "לתמיכה מיידית.",
     "back": "חזרה",
-    "newSession": "פגישה חדשה"
+    "newSession": "פגישה חדשה",
+    "retry": "נסה שוב"
   },
   "wizard": {
     "chooseTherapist": "בחרו את המטפל שלכם",
@@ -272,7 +273,8 @@
     "unmuteTherapist": "בטל השתקת מטפל",
     "muteMic": "השתק מיקרופון",
     "unmuteMic": "בטל השתקת מיקרופון",
-    "you": "אתה"
+    "you": "אתה",
+    "responseError": "משהו השתבש בקבלת תגובת המטפל. אנא נסה לדבר שוב."
   },
   "therapists": {
     "title": "הכירו את",
@@ -304,7 +306,8 @@
     "noSessions": "אין פגישות עדיין",
     "noSessionsDesc": "הזמינו את הפגישה הראשונה שלכם כדי להתחיל.",
     "browseTherapists": "עיינו במטפלים",
-    "unknownTherapist": "מטפל לא ידוע"
+    "unknownTherapist": "מטפל לא ידוע",
+    "fetchError": "לא ניתן לטעון את הפגישות שלך. אנא נסה שוב."
   },
   "account": {
     "title": "הגדרות חשבון",

@@ -15,7 +15,8 @@
     "crisisLifeline": "988 İntihar ve Kriz Hattı",
     "forImmediateSupport": "acil destek için.",
     "back": "Geri",
-    "newSession": "Yeni Seans"
+    "newSession": "Yeni Seans",
+    "retry": "Tekrar Dene"
   },
   "wizard": {
     "chooseTherapist": "Terapistinizi Seçin",
@@ -272,7 +273,8 @@
     "unmuteTherapist": "Terapistin sesini aç",
     "muteMic": "Mikrofonu sessize al",
     "unmuteMic": "Mikrofonun sesini aç",
-    "you": "Siz"
+    "you": "Siz",
+    "responseError": "Terapistin yanıtı alınırken bir sorun oluştu. Lütfen tekrar konuşmayı deneyin."
   },
   "therapists": {
     "title": "Terapistlerimizle",
@@ -304,7 +306,8 @@
     "noSessions": "Henüz seans yok",
     "noSessionsDesc": "Başlamak için ilk seansınızı rezerve edin.",
     "browseTherapists": "Terapistlere Göz At",
-    "unknownTherapist": "Bilinmeyen Terapist"
+    "unknownTherapist": "Bilinmeyen Terapist",
+    "fetchError": "Seanslarınız yüklenemedi. Lütfen tekrar deneyin."
   },
   "account": {
     "title": "Hesap Ayarları",

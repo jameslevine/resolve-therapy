@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Mic, MicOff, Phone, Volume2, VolumeX, Clock, X } from "lucide-react";
+import { Mic, MicOff, Phone, Volume2, VolumeX, Clock, X, AlertCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { TherapistProfile, TranscriptEntry, ParticipantInfo } from "@/types";
 import { apiFetch } from "@/lib/api";
@@ -35,12 +35,20 @@ export default function SessionInterface({
   const [showEndModal, setShowEndModal] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [interimText, setInterimText] = useState("");
+  const [sessionError, setSessionError] = useState<string | null>(null);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fullTranscriptRef = useRef<TranscriptEntry[]>([]);
   const responseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTTSPlayingRef = useRef(false);
+  const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showError = useCallback((message: string) => {
+    setSessionError(message);
+    if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
+    errorTimeoutRef.current = setTimeout(() => setSessionError(null), 6000);
+  }, []);
 
   // Session timer
   useEffect(() => {
@@ -105,8 +113,7 @@ export default function SessionInterface({
           };
           source.start(0);
         });
-      } catch (err) {
-        console.error("Audio playback error:", err);
+      } catch {
         setIsSpeaking(false);
         isTTSPlayingRef.current = false;
         voiceRecorder.resume();
@@ -157,12 +164,12 @@ export default function SessionInterface({
                 await playAudio(ttsData.audioUrl);
               }
             }
-          } catch (ttsErr) {
-            console.error("TTS error:", ttsErr);
+          } catch {
+            // TTS failed silently — text response is still shown in transcript
           }
         }
-      } catch (err) {
-        console.error("Therapist response error:", err);
+      } catch {
+        showError(t("session.responseError"));
         setIsProcessing(false);
       }
     },
@@ -218,8 +225,7 @@ export default function SessionInterface({
           await playAudio(data.audioUrl);
         }
       }
-    } catch (err) {
-      console.error("Greeting playback error:", err);
+    } catch {
       addTranscriptEntry(greeting, true);
     }
 
@@ -251,8 +257,8 @@ export default function SessionInterface({
           })),
         }),
       });
-    } catch (err) {
-      console.error("Failed to save session:", err);
+    } catch {
+      // Session end save failed — user is redirecting to dashboard anyway
     }
 
     window.location.href = "/dashboard";
@@ -262,6 +268,7 @@ export default function SessionInterface({
     return () => {
       voiceRecorder.stop();
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
       if (audioContextRef.current) audioContextRef.current.close();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -401,6 +408,20 @@ export default function SessionInterface({
           </div>
         )}
       </div>
+
+      {/* Error Toast */}
+      {sessionError && (
+        <div className="flex items-center gap-2 border-t border-red-200 bg-red-50 px-4 py-2.5">
+          <AlertCircle className="h-4 w-4 flex-shrink-0 text-red-500" />
+          <p className="flex-1 text-sm text-red-700">{sessionError}</p>
+          <button
+            onClick={() => setSessionError(null)}
+            className="rounded p-0.5 text-red-400 hover:text-red-600"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Controls */}
       <div className="border-t border-stone-200 bg-white px-4 py-4">

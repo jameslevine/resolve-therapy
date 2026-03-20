@@ -98,22 +98,24 @@ async function handleBuyCredits(event: APIGatewayProxyEvent): Promise<APIGateway
 }
 
 async function handleWebhook(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const sig = event.headers["Stripe-Signature"] || event.headers["stripe-signature"];
-  let stripeEvent: Stripe.Event;
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    log.error("STRIPE_WEBHOOK_SECRET not configured");
+    return error(500, "Webhook not configured");
+  }
 
-  if (process.env.STRIPE_WEBHOOK_SECRET && sig) {
-    try {
-      stripeEvent = stripe.webhooks.constructEvent(
-        event.body!,
-        sig,
-        process.env.STRIPE_WEBHOOK_SECRET,
-      );
-    } catch (err) {
-      log.error("Webhook signature verification failed", { error: (err as Error).message });
-      return error(400, "Webhook signature verification failed");
-    }
-  } else {
-    stripeEvent = JSON.parse(event.body!) as Stripe.Event;
+  const sig = event.headers["Stripe-Signature"] || event.headers["stripe-signature"];
+  if (!sig) {
+    log.warn("Webhook request missing Stripe-Signature header");
+    return error(400, "Missing signature");
+  }
+
+  let stripeEvent: Stripe.Event;
+  try {
+    stripeEvent = stripe.webhooks.constructEvent(event.body!, sig, webhookSecret);
+  } catch (err) {
+    log.error("Webhook signature verification failed", { error: (err as Error).message });
+    return error(400, "Webhook signature verification failed");
   }
 
   if (stripeEvent.type === "checkout.session.completed") {

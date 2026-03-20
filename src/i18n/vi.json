@@ -15,7 +15,8 @@
     "crisisLifeline": "Đường Dây Hỗ Trợ Khủng Hoảng 988",
     "forImmediateSupport": "để được hỗ trợ ngay lập tức.",
     "back": "Quay Lại",
-    "newSession": "Phiên Mới"
+    "newSession": "Phiên Mới",
+    "retry": "Thử lại"
   },
   "wizard": {
     "chooseTherapist": "Chọn Chuyên Gia Trị Liệu",
@@ -272,7 +273,8 @@
     "unmuteTherapist": "Bật tiếng chuyên gia trị liệu",
     "muteMic": "Tắt tiếng micrô",
     "unmuteMic": "Bật tiếng micrô",
-    "you": "Bạn"
+    "you": "Bạn",
+    "responseError": "Đã xảy ra lỗi khi nhận phản hồi từ chuyên gia trị liệu. Vui lòng thử nói lại."
   },
   "therapists": {
     "title": "Gặp Gỡ",
@@ -304,7 +306,8 @@
     "noSessions": "Chưa có phiên nào",
     "noSessionsDesc": "Đặt phiên đầu tiên của bạn để bắt đầu.",
     "browseTherapists": "Duyệt Chuyên Gia Trị Liệu",
-    "unknownTherapist": "Chuyên Gia Không Xác Định"
+    "unknownTherapist": "Chuyên Gia Không Xác Định",
+    "fetchError": "Không thể tải các phiên của bạn. Vui lòng thử lại."
   },
   "account": {
     "title": "Cài Đặt Tài Khoản",

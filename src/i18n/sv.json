@@ -15,7 +15,8 @@
     "crisisLifeline": "988 Suicide & Crisis Lifeline",
     "forImmediateSupport": "för omedelbar hjälp.",
     "back": "Tillbaka",
-    "newSession": "Ny session"
+    "newSession": "Ny session",
+    "retry": "Försök igen"
   },
   "wizard": {
     "chooseTherapist": "Välj din terapeut",
@@ -272,7 +273,8 @@
     "unmuteTherapist": "Slå på terapeuten",
     "muteMic": "Stäng av mikrofonen",
     "unmuteMic": "Slå på mikrofonen",
-    "you": "Du"
+    "you": "Du",
+    "responseError": "Något gick fel när terapeutens svar hämtades. Försök tala igen."
   },
   "therapists": {
     "title": "Möt våra",
@@ -304,7 +306,8 @@
     "noSessions": "Inga sessioner ännu",
     "noSessionsDesc": "Boka din första session för att komma igång.",
     "browseTherapists": "Bläddra bland terapeuter",
-    "unknownTherapist": "Okänd terapeut"
+    "unknownTherapist": "Okänd terapeut",
+    "fetchError": "Det gick inte att ladda dina sessioner. Försök igen."
   },
   "account": {
     "title": "Kontoinställningar",
