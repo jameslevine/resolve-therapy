@@ -18,6 +18,10 @@
     "newSession": "جلسة جديدة",
     "retry": "حاول مرة أخرى"
   },
+  "theme": {
+    "light": "الوضع الفاتح",
+    "dark": "الوضع الداكن"
+  },
   "wizard": {
     "chooseTherapist": "اختر معالجك",
     "chooseTherapistDesc": "لكل معالج نهج وصوت فريد. اختر الذي يناسبك.",
@@ -287,7 +291,8 @@
     "bookSession": "حجز جلسة",
     "about": "نبذة",
     "backgroundTitle": "الخلفية والمؤهلات",
-    "approachTitle": "النهج العلاجي"
+    "approachTitle": "النهج العلاجي",
+    "pastSessions": "جلساتك السابقة"
   },
   "booking": {
     "title": "حجز جلسة",
@@ -337,7 +342,27 @@
     "summary": "ملخص الجلسة",
     "sessionFocus": "محور الجلسة",
     "transcript": "النص",
-    "noTranscript": "لا يوجد نص متاح لهذه الجلسة."
+    "noTranscript": "لا يوجد نص متاح لهذه الجلسة.",
+    "bookAgain": "احجز مرة أخرى"
+  },
+  "insights": {
+    "communicationScore": "درجة التواصل",
+    "patterns": "الأنماط",
+    "strengths": "نقاط القوة",
+    "actionItems": "بنود العمل",
+    "emotionalThemes": "المواضيع العاطفية"
+  },
+  "progress": {
+    "title": "تقدمك",
+    "subtitle": "تتبع رحلتك العلاجية عبر الزمن.",
+    "totalSessions": "إجمالي الجلسات",
+    "totalMinutes": "إجمالي الدقائق",
+    "avgScore": "متوسط الدرجة",
+    "favoriteTherapist": "المعالج المفضل",
+    "scoreOverTime": "الدرجة عبر الزمن",
+    "recentSessions": "الجلسات الأخيرة",
+    "noData": "لا توجد بيانات بعد",
+    "noDataDesc": "أكمل جلستك الأولى لرؤية تقدمك هنا."
   },
   "credits": {
     "title": "دقائق",

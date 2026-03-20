@@ -18,6 +18,10 @@
     "newSession": "Ny session",
     "retry": "Försök igen"
   },
+  "theme": {
+    "light": "Ljust läge",
+    "dark": "Mörkt läge"
+  },
   "wizard": {
     "chooseTherapist": "Välj din terapeut",
     "chooseTherapistDesc": "Varje terapeut har ett unikt förhållningssätt och en unik röst. Välj den som känns rätt för dig.",
@@ -287,7 +291,8 @@
     "bookSession": "Boka en session",
     "about": "Om",
     "backgroundTitle": "Bakgrund och meriter",
-    "approachTitle": "Terapeutiskt tillvägagångssätt"
+    "approachTitle": "Terapeutiskt tillvägagångssätt",
+    "pastSessions": "Dina Tidigare Sessioner"
   },
   "booking": {
     "title": "Boka en session",
@@ -337,7 +342,27 @@
     "summary": "Sessionssammanfattning",
     "sessionFocus": "Sessionsfokus",
     "transcript": "Utskrift",
-    "noTranscript": "Ingen utskrift tillgänglig för den här sessionen."
+    "noTranscript": "Ingen utskrift tillgänglig för den här sessionen.",
+    "bookAgain": "Boka Igen"
+  },
+  "insights": {
+    "communicationScore": "Kommunikationspoäng",
+    "patterns": "Mönster",
+    "strengths": "Styrkor",
+    "actionItems": "Åtgärdspunkter",
+    "emotionalThemes": "Emotionella Teman"
+  },
+  "progress": {
+    "title": "Dina Framsteg",
+    "subtitle": "Följ din terapeutiska resa över tid.",
+    "totalSessions": "Totalt Antal Sessioner",
+    "totalMinutes": "Totalt Antal Minuter",
+    "avgScore": "Genomsnittlig Poäng",
+    "favoriteTherapist": "Favoriteterapeut",
+    "scoreOverTime": "Poäng Över Tid",
+    "recentSessions": "Senaste Sessioner",
+    "noData": "Inga data ännu",
+    "noDataDesc": "Slutför din första session för att se dina framsteg här."
   },
   "credits": {
     "title": "Terapi",

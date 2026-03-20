@@ -18,6 +18,10 @@
     "newSession": "Phiên Mới",
     "retry": "Thử lại"
   },
+  "theme": {
+    "light": "Chế độ sáng",
+    "dark": "Chế độ tối"
+  },
   "wizard": {
     "chooseTherapist": "Chọn Chuyên Gia Trị Liệu",
     "chooseTherapistDesc": "Mỗi chuyên gia trị liệu có phương pháp và giọng nói riêng biệt. Hãy chọn người phù hợp với bạn.",
@@ -287,7 +291,8 @@
     "bookSession": "Đặt Phiên",
     "about": "Giới Thiệu",
     "backgroundTitle": "Nền Tảng & Chứng Chỉ",
-    "approachTitle": "Phương Pháp Trị Liệu"
+    "approachTitle": "Phương Pháp Trị Liệu",
+    "pastSessions": "Các Phiên Trước Của Bạn"
   },
   "booking": {
     "title": "Đặt Phiên",
@@ -337,7 +342,27 @@
     "summary": "Tóm Tắt Phiên",
     "sessionFocus": "Trọng Tâm Phiên",
     "transcript": "Bản Ghi",
-    "noTranscript": "Không có bản ghi nào cho phiên này."
+    "noTranscript": "Không có bản ghi nào cho phiên này.",
+    "bookAgain": "Đặt Lại"
+  },
+  "insights": {
+    "communicationScore": "Điểm Giao Tiếp",
+    "patterns": "Mô Hình",
+    "strengths": "Điểm Mạnh",
+    "actionItems": "Hạng Mục Hành Động",
+    "emotionalThemes": "Chủ Đề Cảm Xúc"
+  },
+  "progress": {
+    "title": "Tiến Trình Của Bạn",
+    "subtitle": "Theo dõi hành trình trị liệu của bạn theo thời gian.",
+    "totalSessions": "Tổng Số Phiên",
+    "totalMinutes": "Tổng Số Phút",
+    "avgScore": "Điểm Trung Bình",
+    "favoriteTherapist": "Chuyên Gia Yêu Thích",
+    "scoreOverTime": "Điểm Theo Thời Gian",
+    "recentSessions": "Các Phiên Gần Đây",
+    "noData": "Chưa có dữ liệu",
+    "noDataDesc": "Hoàn thành phiên đầu tiên để xem tiến trình của bạn tại đây."
   },
   "credits": {
     "title": "Phút",

@@ -18,6 +18,10 @@
     "newSession": "새 세션",
     "retry": "다시 시도"
   },
+  "theme": {
+    "light": "라이트 모드",
+    "dark": "다크 모드"
+  },
   "wizard": {
     "chooseTherapist": "치료사 선택",
     "chooseTherapistDesc": "각 치료사는 고유한 접근 방식과 목소리를 가지고 있습니다. 본인에게 맞는 치료사를 선택하세요.",
@@ -287,7 +291,8 @@
     "bookSession": "세션 예약",
     "about": "소개",
     "backgroundTitle": "배경 및 자격",
-    "approachTitle": "치료적 접근 방식"
+    "approachTitle": "치료적 접근 방식",
+    "pastSessions": "이전 세션"
   },
   "booking": {
     "title": "세션 예약",
@@ -337,7 +342,27 @@
     "summary": "세션 요약",
     "sessionFocus": "세션 주제",
     "transcript": "기록",
-    "noTranscript": "이 세션에 대한 기록이 없습니다."
+    "noTranscript": "이 세션에 대한 기록이 없습니다.",
+    "bookAgain": "다시 예약하기"
+  },
+  "insights": {
+    "communicationScore": "소통 점수",
+    "patterns": "패턴",
+    "strengths": "강점",
+    "actionItems": "실행 항목",
+    "emotionalThemes": "감정적 주제"
+  },
+  "progress": {
+    "title": "나의 진행 상황",
+    "subtitle": "시간에 따른 치료 여정을 추적하세요.",
+    "totalSessions": "총 세션 수",
+    "totalMinutes": "총 시간(분)",
+    "avgScore": "평균 점수",
+    "favoriteTherapist": "선호 치료사",
+    "scoreOverTime": "시간별 점수",
+    "recentSessions": "최근 세션",
+    "noData": "아직 데이터가 없습니다",
+    "noDataDesc": "첫 번째 세션을 완료하면 여기에서 진행 상황을 확인할 수 있습니다."
   },
   "credits": {
     "title": "상담",

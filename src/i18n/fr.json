@@ -18,6 +18,10 @@
     "newSession": "Nouvelle séance",
     "retry": "Réessayer"
   },
+  "theme": {
+    "light": "Mode clair",
+    "dark": "Mode sombre"
+  },
   "wizard": {
     "chooseTherapist": "Choisissez votre thérapeute",
     "chooseTherapistDesc": "Chaque thérapeute possède une approche et une voix uniques. Sélectionnez celui qui vous correspond le mieux.",
@@ -287,7 +291,8 @@
     "bookSession": "Réserver une séance",
     "about": "À propos",
     "backgroundTitle": "Parcours et références",
-    "approachTitle": "Approche thérapeutique"
+    "approachTitle": "Approche thérapeutique",
+    "pastSessions": "Vos Séances Passées"
   },
   "booking": {
     "title": "Réserver une séance",
@@ -337,7 +342,27 @@
     "summary": "Résumé de la séance",
     "sessionFocus": "Objectif de la séance",
     "transcript": "Transcription",
-    "noTranscript": "Aucune transcription disponible pour cette séance."
+    "noTranscript": "Aucune transcription disponible pour cette séance.",
+    "bookAgain": "Réserver à Nouveau"
+  },
+  "insights": {
+    "communicationScore": "Score de Communication",
+    "patterns": "Schémas",
+    "strengths": "Points Forts",
+    "actionItems": "Actions à Entreprendre",
+    "emotionalThemes": "Thèmes Émotionnels"
+  },
+  "progress": {
+    "title": "Vos Progrès",
+    "subtitle": "Suivez votre parcours thérapeutique au fil du temps.",
+    "totalSessions": "Total des Séances",
+    "totalMinutes": "Total des Minutes",
+    "avgScore": "Score Moyen",
+    "favoriteTherapist": "Thérapeute Préféré",
+    "scoreOverTime": "Score au Fil du Temps",
+    "recentSessions": "Séances Récentes",
+    "noData": "Pas encore de données",
+    "noDataDesc": "Terminez votre première séance pour voir vos progrès ici."
   },
   "credits": {
     "title": "Minutes de",

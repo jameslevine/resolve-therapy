@@ -18,6 +18,10 @@
     "newSession": "Nueva Sesion",
     "retry": "Intentar de nuevo"
   },
+  "theme": {
+    "light": "Modo claro",
+    "dark": "Modo oscuro"
+  },
   "wizard": {
     "chooseTherapist": "Elige Tu Terapeuta",
     "chooseTherapistDesc": "Cada terapeuta tiene un enfoque y voz unicos. Selecciona el que mas te identifique.",
@@ -287,7 +291,8 @@
     "bookSession": "Reservar una Sesion",
     "about": "Acerca de",
     "backgroundTitle": "Formacion y Credenciales",
-    "approachTitle": "Enfoque Terapeutico"
+    "approachTitle": "Enfoque Terapeutico",
+    "pastSessions": "Tus Sesiones Anteriores"
   },
   "booking": {
     "title": "Reservar una Sesion",
@@ -337,7 +342,27 @@
     "summary": "Resumen de la Sesion",
     "sessionFocus": "Enfoque de la Sesion",
     "transcript": "Transcripcion",
-    "noTranscript": "No hay transcripcion disponible para esta sesion."
+    "noTranscript": "No hay transcripcion disponible para esta sesion.",
+    "bookAgain": "Reservar de Nuevo"
+  },
+  "insights": {
+    "communicationScore": "Puntuacion de Comunicacion",
+    "patterns": "Patrones",
+    "strengths": "Fortalezas",
+    "actionItems": "Elementos de Accion",
+    "emotionalThemes": "Temas Emocionales"
+  },
+  "progress": {
+    "title": "Tu Progreso",
+    "subtitle": "Rastrea tu viaje terapeutico a lo largo del tiempo.",
+    "totalSessions": "Total de Sesiones",
+    "totalMinutes": "Total de Minutos",
+    "avgScore": "Puntuacion Promedio",
+    "favoriteTherapist": "Terapeuta Favorito",
+    "scoreOverTime": "Puntuacion a lo Largo del Tiempo",
+    "recentSessions": "Sesiones Recientes",
+    "noData": "Sin datos aun",
+    "noDataDesc": "Completa tu primera sesion para ver tu progreso aqui."
   },
   "credits": {
     "title": "Minutos de",

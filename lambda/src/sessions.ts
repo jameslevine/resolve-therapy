@@ -54,6 +54,14 @@ interface EndSessionBody {
   transcript?: TranscriptEntry[];
 }
 
+interface SessionInsight {
+  patterns: string[];
+  strengths: string[];
+  actionItems: string[];
+  emotionalThemes: string[];
+  communicationScore: number;
+}
+
 const THERAPISTS: Record<string, { personalityPrompt: string; voiceId: string }> = {
   "dr-sarah-chen": {
     personalityPrompt:
@@ -225,6 +233,19 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       return await handleGetTranscript(sessionId);
     }
 
+    // GET /sessions/{id}/insights
+    if (path.includes("/insights") && method === "GET") {
+      const parts = path.split("/");
+      const sessionIdx = parts.indexOf("sessions");
+      const sessionId = parts[sessionIdx + 1];
+      return await handleGetInsights(sessionId);
+    }
+
+    // GET /sessions/progress?userId=xxx
+    if (path.endsWith("/progress") && method === "GET") {
+      return await handleGetProgress(event);
+    }
+
     // GET /sessions/{id}
     const idMatch = path.match(/\/sessions\/([^/]+)$/);
     if (idMatch && method === "GET") {
@@ -289,6 +310,20 @@ async function handleStartSession(event: APIGatewayProxyEvent): Promise<APIGatew
   return ok({ sessionId, balance });
 }
 
+async function handleGetInsights(id: string): Promise<APIGatewayProxyResult> {
+  const result = await ddb.send(
+    new GetCommand({
+      TableName: TABLE,
+      Key: { PK: `SESSION#${id}`, SK: "INSIGHTS" },
+    }),
+  );
+  if (!result.Item) return ok({ insights: null });
+  const insights = Object.fromEntries(
+    Object.entries(result.Item).filter(([k]) => k !== "PK" && k !== "SK"),
+  );
+  return ok({ insights });
+}
+
 async function handleGetTranscript(id: string): Promise<APIGatewayProxyResult> {
   const result = await ddb.send(
     new GetCommand({
@@ -332,6 +367,83 @@ async function handleListSessions(event: APIGatewayProxyEvent): Promise<APIGatew
   }
 
   return ok({ sessions: [] });
+}
+
+async function handleGetProgress(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  const userId = event.queryStringParameters?.userId;
+  if (!userId) return error(400, "userId is required");
+
+  // Get all completed sessions
+  const result = await ddb.send(
+    new QueryCommand({
+      TableName: TABLE,
+      IndexName: "GSI1",
+      KeyConditionExpression: "GSI1PK = :pk AND begins_with(GSI1SK, :sk)",
+      ExpressionAttributeValues: {
+        ":pk": `USER#${userId}`,
+        ":sk": "SESSION#",
+      },
+      ScanIndexForward: true,
+    }),
+  );
+
+  const sessions = (result.Items || []).filter((s) => s.status === "completed");
+
+  // Fetch insights for each completed session (up to last 20)
+  const recentSessions = sessions.slice(-20);
+  const insightsPromises = recentSessions.map((s) =>
+    ddb
+      .send(
+        new GetCommand({
+          TableName: TABLE,
+          Key: { PK: `SESSION#${s.id}`, SK: "INSIGHTS" },
+        }),
+      )
+      .then((r) => ({ sessionId: s.id as string, insights: r.Item || null }))
+      .catch(() => ({ sessionId: s.id as string, insights: null })),
+  );
+
+  const insightsResults = await Promise.all(insightsPromises);
+
+  // Build progress data
+  const sessionHistory = recentSessions.map((s) => {
+    const insightData = insightsResults.find((i) => i.sessionId === s.id);
+    return {
+      id: s.id,
+      date: s.createdAt,
+      therapistId: s.therapistId,
+      minutesUsed: s.minutesUsed || 0,
+      communicationScore: insightData?.insights?.communicationScore || null,
+    };
+  });
+
+  // Aggregate stats
+  const totalSessions = sessions.length;
+  const totalMinutes = sessions.reduce((sum, s) => sum + ((s.minutesUsed as number) || 0), 0);
+  const scores = sessionHistory
+    .map((s) => s.communicationScore)
+    .filter((s): s is number => s !== null);
+  const avgScore =
+    scores.length > 0
+      ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10
+      : null;
+
+  // Therapist frequency
+  const therapistCounts: Record<string, number> = {};
+  for (const s of sessions) {
+    const tid = s.therapistId as string;
+    therapistCounts[tid] = (therapistCounts[tid] || 0) + 1;
+  }
+  const favoriteTherapist =
+    Object.entries(therapistCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+
+  return ok({
+    totalSessions,
+    totalMinutes,
+    averageScore: avgScore,
+    favoriteTherapist,
+    sessionHistory,
+  });
 }
 
 async function handleRespond(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
@@ -500,25 +612,45 @@ async function handleEndSession(event: APIGatewayProxyEvent): Promise<APIGateway
       }),
     );
 
-    // Generate summary using Bedrock
+    // Generate summary and insights using Bedrock
     try {
-      const summary = await generateSessionSummary(session, transcript);
+      const [summary, insights] = await Promise.all([
+        generateSessionSummary(session, transcript),
+        generateSessionInsights(session, transcript),
+      ]);
+
+      // Store insights as separate DynamoDB item
+      if (insights) {
+        await ddb.send(
+          new PutCommand({
+            TableName: TABLE,
+            Item: {
+              PK: `SESSION#${id}`,
+              SK: "INSIGHTS",
+              ...insights,
+              createdAt: new Date().toISOString(),
+            },
+          }),
+        );
+      }
+
       await ddb.send(
         new UpdateCommand({
           TableName: TABLE,
           Key: { PK: `SESSION#${id}`, SK: "META" },
           UpdateExpression:
-            "SET #status = :status, endedAt = :endedAt, summary = :summary, minutesUsed = :mins",
+            "SET #status = :status, endedAt = :endedAt, summary = :summary, minutesUsed = :mins, hasInsights = :hi",
           ExpressionAttributeNames: { "#status": "status" },
           ExpressionAttributeValues: {
             ":status": "completed",
             ":endedAt": endedAt,
             ":summary": summary,
             ":mins": minutesUsed,
+            ":hi": !!insights,
           },
         }),
       );
-      return ok({ success: true, summary });
+      return ok({ success: true, summary, insights });
     } catch (err) {
       log.error("Summary generation failed", { error: (err as Error).message, sessionId: id });
     }
@@ -573,4 +705,67 @@ async function generateSessionSummary(
 
   const response = await bedrock.send(command);
   return response.output?.message?.content?.[0]?.text || "";
+}
+
+async function generateSessionInsights(
+  session: SessionItem,
+  transcript: TranscriptEntry[],
+): Promise<SessionInsight | null> {
+  const bedrock = new BedrockRuntimeClient({ region: process.env.AWS_REGION || "eu-west-2" });
+
+  const conversationText = transcript
+    .map((e) => `${e.isTherapist ? "Therapist" : "Participant"}: ${e.content}`)
+    .join("\n");
+
+  const command = new ConverseCommand({
+    modelId: process.env.BEDROCK_MODEL_ID || "anthropic.claude-sonnet-4-6",
+    system: [
+      {
+        text: `You are a relationship analytics assistant. Analyze a therapy session transcript and return structured insights as valid JSON only, with no other text.
+
+Return this exact JSON structure:
+{
+  "patterns": ["array of 2-4 recurring interaction patterns observed"],
+  "strengths": ["array of 2-3 relationship strengths identified"],
+  "actionItems": ["array of 2-4 specific homework or action items for the couple"],
+  "emotionalThemes": ["array of 2-4 key emotional themes (single words or short phrases)"],
+  "communicationScore": <number 1-10 rating their communication quality in this session>
+}
+
+Be specific and personalized based on the transcript content. Use plain language accessible to non-therapists.`,
+      },
+    ],
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            text: `Participants: ${session.participants?.names?.join(", ") || "Unknown"}\nRelationship: ${(session.participants as Record<string, unknown>)?.relationship || "Unknown"}\nSession focus: ${session.prompt || "General"}\n\nTranscript:\n${conversationText}`,
+          },
+        ],
+      },
+    ],
+    inferenceConfig: { maxTokens: 600, temperature: 0.3 },
+  });
+
+  const response = await bedrock.send(command);
+  const text = response.output?.message?.content?.[0]?.text || "";
+
+  try {
+    const parsed = JSON.parse(text) as SessionInsight;
+    // Validate shape
+    if (
+      Array.isArray(parsed.patterns) &&
+      Array.isArray(parsed.strengths) &&
+      Array.isArray(parsed.actionItems) &&
+      Array.isArray(parsed.emotionalThemes) &&
+      typeof parsed.communicationScore === "number"
+    ) {
+      return parsed;
+    }
+    return null;
+  } catch {
+    log.warn("Failed to parse insights JSON", { text: text.substring(0, 200) });
+    return null;
+  }
 }

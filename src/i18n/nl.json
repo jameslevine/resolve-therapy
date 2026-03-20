@@ -18,6 +18,10 @@
     "newSession": "Nieuwe sessie",
     "retry": "Opnieuw proberen"
   },
+  "theme": {
+    "light": "Lichte modus",
+    "dark": "Donkere modus"
+  },
   "wizard": {
     "chooseTherapist": "Kies uw therapeut",
     "chooseTherapistDesc": "Elke therapeut heeft een unieke aanpak en stem. Selecteer degene die bij u past.",
@@ -287,7 +291,8 @@
     "bookSession": "Sessie boeken",
     "about": "Over",
     "backgroundTitle": "Achtergrond en kwalificaties",
-    "approachTitle": "Therapeutische aanpak"
+    "approachTitle": "Therapeutische aanpak",
+    "pastSessions": "Uw Eerdere Sessies"
   },
   "booking": {
     "title": "Sessie boeken",
@@ -337,7 +342,27 @@
     "summary": "Sessiesamenvatting",
     "sessionFocus": "Sessiefocus",
     "transcript": "Transcript",
-    "noTranscript": "Geen transcript beschikbaar voor deze sessie."
+    "noTranscript": "Geen transcript beschikbaar voor deze sessie.",
+    "bookAgain": "Opnieuw Boeken"
+  },
+  "insights": {
+    "communicationScore": "Communicatiescore",
+    "patterns": "Patronen",
+    "strengths": "Sterke Punten",
+    "actionItems": "Actiepunten",
+    "emotionalThemes": "Emotionele Thema's"
+  },
+  "progress": {
+    "title": "Uw Voortgang",
+    "subtitle": "Volg uw therapeutische reis door de tijd.",
+    "totalSessions": "Totaal Sessies",
+    "totalMinutes": "Totaal Minuten",
+    "avgScore": "Gemiddelde Score",
+    "favoriteTherapist": "Favoriete Therapeut",
+    "scoreOverTime": "Score in de Loop van de Tijd",
+    "recentSessions": "Recente Sessies",
+    "noData": "Nog geen gegevens",
+    "noDataDesc": "Voltooi uw eerste sessie om uw voortgang hier te zien."
   },
   "credits": {
     "title": "Therapie",

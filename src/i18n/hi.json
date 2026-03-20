@@ -18,6 +18,10 @@
     "newSession": "नया सत्र",
     "retry": "पुनः प्रयास करें"
   },
+  "theme": {
+    "light": "लाइट मोड",
+    "dark": "डार्क मोड"
+  },
   "wizard": {
     "chooseTherapist": "अपना थेरेपिस्ट चुनें",
     "chooseTherapistDesc": "प्रत्येक थेरेपिस्ट का अपना अनूठा दृष्टिकोण और आवाज़ है। वह चुनें जो आपको सबसे उपयुक्त लगे।",
@@ -287,7 +291,8 @@
     "bookSession": "सत्र बुक करें",
     "about": "परिचय",
     "backgroundTitle": "पृष्ठभूमि और योग्यताएं",
-    "approachTitle": "चिकित्सीय दृष्टिकोण"
+    "approachTitle": "चिकित्सीय दृष्टिकोण",
+    "pastSessions": "आपके पिछले सत्र"
   },
   "booking": {
     "title": "सत्र बुक करें",
@@ -337,7 +342,27 @@
     "summary": "सत्र का सारांश",
     "sessionFocus": "सत्र का विषय",
     "transcript": "ट्रांसक्रिप्ट",
-    "noTranscript": "इस सत्र के लिए कोई ट्रांसक्रिप्ट उपलब्ध नहीं है।"
+    "noTranscript": "इस सत्र के लिए कोई ट्रांसक्रिप्ट उपलब्ध नहीं है।",
+    "bookAgain": "फिर से बुक करें"
+  },
+  "insights": {
+    "communicationScore": "संचार स्कोर",
+    "patterns": "पैटर्न",
+    "strengths": "शक्तियां",
+    "actionItems": "कार्य आइटम",
+    "emotionalThemes": "भावनात्मक विषय"
+  },
+  "progress": {
+    "title": "आपकी प्रगति",
+    "subtitle": "समय के साथ अपनी चिकित्सीय यात्रा को ट्रैक करें।",
+    "totalSessions": "कुल सत्र",
+    "totalMinutes": "कुल मिनट",
+    "avgScore": "औसत स्कोर",
+    "favoriteTherapist": "पसंदीदा थेरेपिस्ट",
+    "scoreOverTime": "समय के साथ स्कोर",
+    "recentSessions": "हाल के सत्र",
+    "noData": "अभी तक कोई डेटा नहीं",
+    "noDataDesc": "अपनी प्रगति यहां देखने के लिए अपना पहला सत्र पूरा करें।"
   },
   "credits": {
     "title": "थेरेपी",

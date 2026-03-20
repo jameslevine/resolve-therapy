@@ -18,6 +18,10 @@
     "newSession": "New Session",
     "retry": "Try Again"
   },
+  "theme": {
+    "light": "Light Mode",
+    "dark": "Dark Mode"
+  },
   "wizard": {
     "chooseTherapist": "Choose Your Therapist",
     "chooseTherapistDesc": "Each therapist has a unique approach and voice. Select the one that resonates with you.",
@@ -287,7 +291,8 @@
     "bookSession": "Book a Session",
     "about": "About",
     "backgroundTitle": "Background & Credentials",
-    "approachTitle": "Therapeutic Approach"
+    "approachTitle": "Therapeutic Approach",
+    "pastSessions": "Your Past Sessions"
   },
   "booking": {
     "title": "Book a Session",
@@ -337,7 +342,27 @@
     "summary": "Session Summary",
     "sessionFocus": "Session Focus",
     "transcript": "Transcript",
-    "noTranscript": "No transcript available for this session."
+    "noTranscript": "No transcript available for this session.",
+    "bookAgain": "Book Again"
+  },
+  "insights": {
+    "communicationScore": "Communication Score",
+    "patterns": "Patterns Observed",
+    "strengths": "Relationship Strengths",
+    "actionItems": "Homework & Action Items",
+    "emotionalThemes": "Emotional Themes"
+  },
+  "progress": {
+    "title": "Your Progress",
+    "subtitle": "Track your relationship journey across sessions.",
+    "totalSessions": "Total Sessions",
+    "totalMinutes": "Minutes Spent",
+    "avgScore": "Avg. Communication",
+    "favoriteTherapist": "Favourite Therapist",
+    "scoreOverTime": "Communication Score Over Time",
+    "recentSessions": "Recent Sessions",
+    "noData": "No sessions yet",
+    "noDataDesc": "Complete your first session to start tracking your progress."
   },
   "credits": {
     "title": "Therapy",

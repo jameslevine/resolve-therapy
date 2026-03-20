@@ -18,6 +18,10 @@
     "newSession": "Neue Sitzung",
     "retry": "Erneut versuchen"
   },
+  "theme": {
+    "light": "Heller Modus",
+    "dark": "Dunkler Modus"
+  },
   "wizard": {
     "chooseTherapist": "Wählen Sie Ihren Therapeuten",
     "chooseTherapistDesc": "Jeder Therapeut hat einen einzigartigen Ansatz und eine eigene Stimme. Wählen Sie denjenigen, der zu Ihnen passt.",
@@ -287,7 +291,8 @@
     "bookSession": "Sitzung buchen",
     "about": "Über",
     "backgroundTitle": "Hintergrund & Qualifikationen",
-    "approachTitle": "Therapeutischer Ansatz"
+    "approachTitle": "Therapeutischer Ansatz",
+    "pastSessions": "Ihre Vergangenen Sitzungen"
   },
   "booking": {
     "title": "Sitzung buchen",
@@ -337,7 +342,27 @@
     "summary": "Sitzungszusammenfassung",
     "sessionFocus": "Sitzungsschwerpunkt",
     "transcript": "Transkript",
-    "noTranscript": "Für diese Sitzung ist kein Transkript verfügbar."
+    "noTranscript": "Für diese Sitzung ist kein Transkript verfügbar.",
+    "bookAgain": "Erneut Buchen"
+  },
+  "insights": {
+    "communicationScore": "Kommunikationsbewertung",
+    "patterns": "Muster",
+    "strengths": "Stärken",
+    "actionItems": "Handlungsschritte",
+    "emotionalThemes": "Emotionale Themen"
+  },
+  "progress": {
+    "title": "Ihr Fortschritt",
+    "subtitle": "Verfolgen Sie Ihre therapeutische Reise im Laufe der Zeit.",
+    "totalSessions": "Sitzungen Gesamt",
+    "totalMinutes": "Minuten Gesamt",
+    "avgScore": "Durchschnittliche Bewertung",
+    "favoriteTherapist": "Lieblingstherapeut",
+    "scoreOverTime": "Bewertung im Zeitverlauf",
+    "recentSessions": "Letzte Sitzungen",
+    "noData": "Noch keine Daten",
+    "noDataDesc": "Schließen Sie Ihre erste Sitzung ab, um Ihren Fortschritt hier zu sehen."
   },
   "credits": {
     "title": "Therapie-",

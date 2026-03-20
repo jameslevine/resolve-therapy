@@ -18,6 +18,10 @@
     "newSession": "Yeni Seans",
     "retry": "Tekrar Dene"
   },
+  "theme": {
+    "light": "Açık Mod",
+    "dark": "Koyu Mod"
+  },
   "wizard": {
     "chooseTherapist": "Terapistinizi Seçin",
     "chooseTherapistDesc": "Her terapistin kendine özgü bir yaklaşımı ve sesi vardır. Size en uygun olanı seçin.",
@@ -287,7 +291,8 @@
     "bookSession": "Seans Rezervasyonu Yap",
     "about": "Hakkında",
     "backgroundTitle": "Geçmiş ve Kimlik Bilgileri",
-    "approachTitle": "Terapötik Yaklaşım"
+    "approachTitle": "Terapötik Yaklaşım",
+    "pastSessions": "Geçmiş Seanslarınız"
   },
   "booking": {
     "title": "Seans Rezervasyonu Yap",
@@ -337,7 +342,27 @@
     "summary": "Seans Özeti",
     "sessionFocus": "Seans Odağı",
     "transcript": "Transkript",
-    "noTranscript": "Bu seans için transkript mevcut değil."
+    "noTranscript": "Bu seans için transkript mevcut değil.",
+    "bookAgain": "Tekrar Rezerve Et"
+  },
+  "insights": {
+    "communicationScore": "İletişim Puanı",
+    "patterns": "Kalıplar",
+    "strengths": "Güçlü Yönler",
+    "actionItems": "Eylem Adımları",
+    "emotionalThemes": "Duygusal Temalar"
+  },
+  "progress": {
+    "title": "İlerlemeniz",
+    "subtitle": "Terapi yolculuğunuzu zaman içinde takip edin.",
+    "totalSessions": "Toplam Seans",
+    "totalMinutes": "Toplam Dakika",
+    "avgScore": "Ortalama Puan",
+    "favoriteTherapist": "Favori Terapist",
+    "scoreOverTime": "Zaman İçinde Puan",
+    "recentSessions": "Son Seanslar",
+    "noData": "Henüz veri yok",
+    "noDataDesc": "İlerlemenizi burada görmek için ilk seansınızı tamamlayın."
   },
   "credits": {
     "title": "Terapi",

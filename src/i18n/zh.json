@@ -18,6 +18,10 @@
     "newSession": "新咨询",
     "retry": "重试"
   },
+  "theme": {
+    "light": "浅色模式",
+    "dark": "深色模式"
+  },
   "wizard": {
     "chooseTherapist": "选择您的咨询师",
     "chooseTherapistDesc": "每位咨询师都有独特的方式和声音，请选择最适合您的那位。",
@@ -287,7 +291,8 @@
     "bookSession": "预约咨询",
     "about": "关于",
     "backgroundTitle": "背景与资质",
-    "approachTitle": "治疗方法"
+    "approachTitle": "治疗方法",
+    "pastSessions": "您的历史咨询"
   },
   "booking": {
     "title": "预约咨询",
@@ -337,7 +342,27 @@
     "summary": "咨询摘要",
     "sessionFocus": "咨询重点",
     "transcript": "文字记录",
-    "noTranscript": "本次咨询没有可用的文字记录。"
+    "noTranscript": "本次咨询没有可用的文字记录。",
+    "bookAgain": "再次预约"
+  },
+  "insights": {
+    "communicationScore": "沟通评分",
+    "patterns": "模式",
+    "strengths": "优势",
+    "actionItems": "行动事项",
+    "emotionalThemes": "情感主题"
+  },
+  "progress": {
+    "title": "您的进展",
+    "subtitle": "追踪您的治疗历程。",
+    "totalSessions": "总咨询次数",
+    "totalMinutes": "总分钟数",
+    "avgScore": "平均评分",
+    "favoriteTherapist": "最喜爱的咨询师",
+    "scoreOverTime": "评分趋势",
+    "recentSessions": "最近的咨询",
+    "noData": "暂无数据",
+    "noDataDesc": "完成您的第一次咨询以在此查看进展。"
   },
   "credits": {
     "title": "咨询",

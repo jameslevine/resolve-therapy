@@ -18,6 +18,10 @@
     "newSession": "Nowa sesja",
     "retry": "Spróbuj ponownie"
   },
+  "theme": {
+    "light": "Tryb jasny",
+    "dark": "Tryb ciemny"
+  },
   "wizard": {
     "chooseTherapist": "Wybierz swojego terapeutę",
     "chooseTherapistDesc": "Każdy terapeuta ma unikalne podejście i głos. Wybierz tego, który najbardziej do Ciebie przemawia.",
@@ -287,7 +291,8 @@
     "bookSession": "Zarezerwuj sesję",
     "about": "O terapeucie",
     "backgroundTitle": "Wykształcenie i kwalifikacje",
-    "approachTitle": "Podejście terapeutyczne"
+    "approachTitle": "Podejście terapeutyczne",
+    "pastSessions": "Twoje Poprzednie Sesje"
   },
   "booking": {
     "title": "Zarezerwuj sesję",
@@ -337,7 +342,27 @@
     "summary": "Podsumowanie sesji",
     "sessionFocus": "Temat sesji",
     "transcript": "Transkrypt",
-    "noTranscript": "Brak transkryptu dla tej sesji."
+    "noTranscript": "Brak transkryptu dla tej sesji.",
+    "bookAgain": "Zarezerwuj Ponownie"
+  },
+  "insights": {
+    "communicationScore": "Wynik Komunikacji",
+    "patterns": "Wzorce",
+    "strengths": "Mocne Strony",
+    "actionItems": "Działania do Podjęcia",
+    "emotionalThemes": "Tematy Emocjonalne"
+  },
+  "progress": {
+    "title": "Twoje Postępy",
+    "subtitle": "Śledź swoją podróż terapeutyczną w czasie.",
+    "totalSessions": "Łączna Liczba Sesji",
+    "totalMinutes": "Łączna Liczba Minut",
+    "avgScore": "Średni Wynik",
+    "favoriteTherapist": "Ulubiony Terapeuta",
+    "scoreOverTime": "Wynik w Czasie",
+    "recentSessions": "Ostatnie Sesje",
+    "noData": "Brak danych",
+    "noDataDesc": "Ukończ swoją pierwszą sesję, aby zobaczyć swoje postępy tutaj."
   },
   "credits": {
     "title": "Minuty",

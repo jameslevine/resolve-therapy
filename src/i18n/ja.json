@@ -18,6 +18,10 @@
     "newSession": "新しいセッション",
     "retry": "もう一度試す"
   },
+  "theme": {
+    "light": "ライトモード",
+    "dark": "ダークモード"
+  },
   "wizard": {
     "chooseTherapist": "セラピストを選ぶ",
     "chooseTherapistDesc": "各セラピストは独自のアプローチと声を持っています。あなたに合ったセラピストを選んでください。",
@@ -287,7 +291,8 @@
     "bookSession": "セッションを予約する",
     "about": "について",
     "backgroundTitle": "経歴と資格",
-    "approachTitle": "治療アプローチ"
+    "approachTitle": "治療アプローチ",
+    "pastSessions": "過去のセッション"
   },
   "booking": {
     "title": "セッションを予約する",
@@ -337,7 +342,27 @@
     "summary": "セッションサマリー",
     "sessionFocus": "セッションの焦点",
     "transcript": "トランスクリプト",
-    "noTranscript": "このセッションのトランスクリプトはありません。"
+    "noTranscript": "このセッションのトランスクリプトはありません。",
+    "bookAgain": "もう一度予約する"
+  },
+  "insights": {
+    "communicationScore": "コミュニケーションスコア",
+    "patterns": "パターン",
+    "strengths": "強み",
+    "actionItems": "アクション項目",
+    "emotionalThemes": "感情的テーマ"
+  },
+  "progress": {
+    "title": "あなたの進捗",
+    "subtitle": "時間の経過とともに治療の旅を追跡しましょう。",
+    "totalSessions": "合計セッション数",
+    "totalMinutes": "合計時間（分）",
+    "avgScore": "平均スコア",
+    "favoriteTherapist": "お気に入りのセラピスト",
+    "scoreOverTime": "スコアの推移",
+    "recentSessions": "最近のセッション",
+    "noData": "まだデータがありません",
+    "noDataDesc": "最初のセッションを完了すると、ここで進捗を確認できます。"
   },
   "credits": {
     "title": "セラピー",

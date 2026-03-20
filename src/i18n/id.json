@@ -18,6 +18,10 @@
     "newSession": "Sesi Baru",
     "retry": "Coba Lagi"
   },
+  "theme": {
+    "light": "Mode Terang",
+    "dark": "Mode Gelap"
+  },
   "wizard": {
     "chooseTherapist": "Pilih Terapis Anda",
     "chooseTherapistDesc": "Setiap terapis memiliki pendekatan dan suara yang unik. Pilih yang paling sesuai dengan Anda.",
@@ -287,7 +291,8 @@
     "bookSession": "Buat Sesi",
     "about": "Tentang",
     "backgroundTitle": "Latar Belakang & Kredensial",
-    "approachTitle": "Pendekatan Terapi"
+    "approachTitle": "Pendekatan Terapi",
+    "pastSessions": "Sesi Sebelumnya Anda"
   },
   "booking": {
     "title": "Buat Sesi",
@@ -337,7 +342,27 @@
     "summary": "Ringkasan Sesi",
     "sessionFocus": "Fokus Sesi",
     "transcript": "Transkrip",
-    "noTranscript": "Tidak ada transkrip yang tersedia untuk sesi ini."
+    "noTranscript": "Tidak ada transkrip yang tersedia untuk sesi ini.",
+    "bookAgain": "Pesan Lagi"
+  },
+  "insights": {
+    "communicationScore": "Skor Komunikasi",
+    "patterns": "Pola",
+    "strengths": "Kekuatan",
+    "actionItems": "Item Tindakan",
+    "emotionalThemes": "Tema Emosional"
+  },
+  "progress": {
+    "title": "Kemajuan Anda",
+    "subtitle": "Lacak perjalanan terapi Anda dari waktu ke waktu.",
+    "totalSessions": "Total Sesi",
+    "totalMinutes": "Total Menit",
+    "avgScore": "Skor Rata-rata",
+    "favoriteTherapist": "Terapis Favorit",
+    "scoreOverTime": "Skor Dari Waktu ke Waktu",
+    "recentSessions": "Sesi Terbaru",
+    "noData": "Belum ada data",
+    "noDataDesc": "Selesaikan sesi pertama Anda untuk melihat kemajuan di sini."
   },
   "credits": {
     "title": "Menit",

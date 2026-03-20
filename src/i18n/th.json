@@ -18,6 +18,10 @@
     "newSession": "เซสชันใหม่",
     "retry": "ลองอีกครั้ง"
   },
+  "theme": {
+    "light": "โหมดสว่าง",
+    "dark": "โหมดมืด"
+  },
   "wizard": {
     "chooseTherapist": "เลือกนักบำบัดของคุณ",
     "chooseTherapistDesc": "นักบำบัดแต่ละท่านมีแนวทางและเสียงที่แตกต่างกัน เลือกท่านที่เหมาะกับคุณมากที่สุดครับ/ค่ะ",
@@ -287,7 +291,8 @@
     "bookSession": "จองเซสชัน",
     "about": "เกี่ยวกับ",
     "backgroundTitle": "ภูมิหลังและคุณสมบัติ",
-    "approachTitle": "แนวทางการบำบัด"
+    "approachTitle": "แนวทางการบำบัด",
+    "pastSessions": "เซสชันก่อนหน้าของคุณ"
   },
   "booking": {
     "title": "จองเซสชัน",
@@ -337,7 +342,27 @@
     "summary": "สรุปเซสชัน",
     "sessionFocus": "จุดมุ่งหมายของเซสชัน",
     "transcript": "ข้อความถอดความ",
-    "noTranscript": "ไม่มีข้อความถอดความสำหรับเซสชันนี้"
+    "noTranscript": "ไม่มีข้อความถอดความสำหรับเซสชันนี้",
+    "bookAgain": "จองอีกครั้ง"
+  },
+  "insights": {
+    "communicationScore": "คะแนนการสื่อสาร",
+    "patterns": "รูปแบบ",
+    "strengths": "จุดแข็ง",
+    "actionItems": "รายการดำเนินการ",
+    "emotionalThemes": "ธีมทางอารมณ์"
+  },
+  "progress": {
+    "title": "ความก้าวหน้าของคุณ",
+    "subtitle": "ติดตามเส้นทางการบำบัดของคุณตลอดเวลา",
+    "totalSessions": "เซสชันทั้งหมด",
+    "totalMinutes": "นาทีทั้งหมด",
+    "avgScore": "คะแนนเฉลี่ย",
+    "favoriteTherapist": "นักบำบัดที่ชื่นชอบ",
+    "scoreOverTime": "คะแนนตลอดเวลา",
+    "recentSessions": "เซสชันล่าสุด",
+    "noData": "ยังไม่มีข้อมูล",
+    "noDataDesc": "เสร็จสิ้นเซสชันแรกของคุณเพื่อดูความก้าวหน้าที่นี่"
   },
   "credits": {
     "title": "นาที",

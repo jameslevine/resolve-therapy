@@ -18,6 +18,10 @@
     "newSession": "פגישה חדשה",
     "retry": "נסה שוב"
   },
+  "theme": {
+    "light": "מצב בהיר",
+    "dark": "מצב כהה"
+  },
   "wizard": {
     "chooseTherapist": "בחרו את המטפל שלכם",
     "chooseTherapistDesc": "לכל מטפל גישה וקול ייחודיים. בחרו את זה שמדבר אליכם.",
@@ -287,7 +291,8 @@
     "bookSession": "הזמינו פגישה",
     "about": "אודות",
     "backgroundTitle": "רקע וכישורים",
-    "approachTitle": "גישה טיפולית"
+    "approachTitle": "גישה טיפולית",
+    "pastSessions": "הפגישות הקודמות שלכם"
   },
   "booking": {
     "title": "הזמינו פגישה",
@@ -337,7 +342,27 @@
     "summary": "סיכום פגישה",
     "sessionFocus": "מיקוד הפגישה",
     "transcript": "תמליל",
-    "noTranscript": "אין תמליל זמין לפגישה זו."
+    "noTranscript": "אין תמליל זמין לפגישה זו.",
+    "bookAgain": "הזמינו שוב"
+  },
+  "insights": {
+    "communicationScore": "ציון תקשורת",
+    "patterns": "דפוסים",
+    "strengths": "חוזקות",
+    "actionItems": "פעולות לביצוע",
+    "emotionalThemes": "נושאים רגשיים"
+  },
+  "progress": {
+    "title": "ההתקדמות שלכם",
+    "subtitle": "עקבו אחר המסע הטיפולי שלכם לאורך זמן.",
+    "totalSessions": "סך הפגישות",
+    "totalMinutes": "סך הדקות",
+    "avgScore": "ציון ממוצע",
+    "favoriteTherapist": "המטפל המועדף",
+    "scoreOverTime": "ציון לאורך זמן",
+    "recentSessions": "פגישות אחרונות",
+    "noData": "אין נתונים עדיין",
+    "noDataDesc": "השלימו את הפגישה הראשונה שלכם כדי לראות את ההתקדמות כאן."
   },
   "credits": {
     "title": "דקות",

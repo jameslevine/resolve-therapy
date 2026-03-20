@@ -1,7 +1,18 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Loader2, Clock, User, MessageSquare } from "lucide-react";
+import {
+  ArrowLeft,
+  Loader2,
+  Clock,
+  User,
+  MessageSquare,
+  Lightbulb,
+  Heart,
+  Target,
+  TrendingUp,
+  CheckCircle2,
+} from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { THERAPIST_PROFILES } from "@/lib/therapists-data";
 
@@ -9,6 +20,14 @@ interface TranscriptEntry {
   content: string;
   isTherapist: boolean;
   timestamp?: string;
+}
+
+interface SessionInsight {
+  patterns: string[];
+  strengths: string[];
+  actionItems: string[];
+  emotionalThemes: string[];
+  communicationScore: number;
 }
 
 interface SessionData {
@@ -24,9 +43,11 @@ interface SessionData {
 
 export default function SessionDetail() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [session, setSession] = useState<SessionData | null>(null);
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
+  const [insights, setInsights] = useState<SessionInsight | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,9 +55,10 @@ export default function SessionDetail() {
     if (!id) return;
     const fetchData = async () => {
       try {
-        const [sessionRes, transcriptRes] = await Promise.all([
+        const [sessionRes, transcriptRes, insightsRes] = await Promise.all([
           apiFetch(`/sessions/${id}`),
           apiFetch(`/sessions/${id}/transcript`),
+          apiFetch(`/sessions/${id}/insights`),
         ]);
 
         if (!sessionRes.ok) throw new Error("Session not found");
@@ -46,6 +68,11 @@ export default function SessionDetail() {
         if (transcriptRes.ok) {
           const transcriptData = await transcriptRes.json();
           setTranscript(transcriptData.entries || []);
+        }
+
+        if (insightsRes.ok) {
+          const insightsData = await insightsRes.json();
+          setInsights(insightsData.insights || null);
         }
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Failed to load session");
@@ -94,7 +121,7 @@ export default function SessionDetail() {
             <ArrowLeft className="h-4 w-4" /> {t("history.backToDashboard")}
           </Link>
 
-          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-center gap-4">
               {therapist && (
                 <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-rose-100 text-sm font-bold text-rose-500">
@@ -134,6 +161,15 @@ export default function SessionDetail() {
                 </div>
               </div>
             </div>
+
+            {session.status === "completed" && therapist && (
+              <button
+                onClick={() => navigate("/new-session")}
+                className="mt-2 inline-flex items-center gap-2 rounded-full bg-rose-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-rose-500/25 transition hover:bg-rose-600 sm:mt-0"
+              >
+                {t("history.bookAgain")}
+              </button>
+            )}
           </div>
 
           {session.participants?.names && session.participants.names.length > 0 && (
@@ -156,6 +192,95 @@ export default function SessionDetail() {
               {t("history.summary")}
             </h2>
             <p className="mt-3 text-stone-700 leading-relaxed">{session.summary}</p>
+          </div>
+        )}
+
+        {/* Insights */}
+        {insights && (
+          <div className="mb-8 space-y-4">
+            {/* Communication Score */}
+            <div className="rounded-2xl border border-stone-200 bg-white p-6">
+              <div className="flex items-center justify-between">
+                <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-stone-400">
+                  <TrendingUp className="h-4 w-4" />
+                  {t("insights.communicationScore")}
+                </h2>
+                <div className="flex items-center gap-2">
+                  <span className="text-3xl font-bold text-rose-600">
+                    {insights.communicationScore}
+                  </span>
+                  <span className="text-sm text-stone-400">/10</span>
+                </div>
+              </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-stone-100">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-rose-400 to-rose-500 transition-all"
+                  style={{ width: `${insights.communicationScore * 10}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              {/* Patterns */}
+              <div className="rounded-2xl border border-stone-200 bg-white p-6">
+                <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-stone-400">
+                  <Lightbulb className="h-4 w-4" />
+                  {t("insights.patterns")}
+                </h3>
+                <ul className="mt-3 space-y-2">
+                  {insights.patterns.map((p, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-stone-700">
+                      <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
+                      {p}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Strengths */}
+              <div className="rounded-2xl border border-stone-200 bg-white p-6">
+                <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-stone-400">
+                  <Heart className="h-4 w-4" />
+                  {t("insights.strengths")}
+                </h3>
+                <ul className="mt-3 space-y-2">
+                  {insights.strengths.map((s, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-stone-700">
+                      <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-400" />
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Action Items */}
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6">
+              <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-rose-400">
+                <Target className="h-4 w-4" />
+                {t("insights.actionItems")}
+              </h3>
+              <ul className="mt-3 space-y-2">
+                {insights.actionItems.map((a, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-stone-700">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-rose-400" />
+                    {a}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Emotional Themes */}
+            <div className="flex flex-wrap gap-2">
+              {insights.emotionalThemes.map((theme, i) => (
+                <span
+                  key={i}
+                  className="rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-600"
+                >
+                  {theme}
+                </span>
+              ))}
+            </div>
           </div>
         )}
 

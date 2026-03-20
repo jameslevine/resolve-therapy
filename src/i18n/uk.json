@@ -18,6 +18,10 @@
     "newSession": "Нова сесія",
     "retry": "Спробувати ще раз"
   },
+  "theme": {
+    "light": "Світла тема",
+    "dark": "Темна тема"
+  },
   "wizard": {
     "chooseTherapist": "Оберіть свого терапевта",
     "chooseTherapistDesc": "Кожен терапевт має унікальний підхід і голос. Оберіть того, хто вам до душі.",
@@ -287,7 +291,8 @@
     "bookSession": "Записатися на сесію",
     "about": "Про терапевта",
     "backgroundTitle": "Освіта та кваліфікація",
-    "approachTitle": "Терапевтичний підхід"
+    "approachTitle": "Терапевтичний підхід",
+    "pastSessions": "Ваші Минулі Сесії"
   },
   "booking": {
     "title": "Записатися на сесію",
@@ -337,7 +342,27 @@
     "summary": "Підсумок сесії",
     "sessionFocus": "Тема сесії",
     "transcript": "Транскрипт",
-    "noTranscript": "Транскрипт для цієї сесії недоступний."
+    "noTranscript": "Транскрипт для цієї сесії недоступний.",
+    "bookAgain": "Записатися Знову"
+  },
+  "insights": {
+    "communicationScore": "Оцінка Комунікації",
+    "patterns": "Патерни",
+    "strengths": "Сильні Сторони",
+    "actionItems": "Дії",
+    "emotionalThemes": "Емоційні Теми"
+  },
+  "progress": {
+    "title": "Ваш Прогрес",
+    "subtitle": "Відстежуйте свій терапевтичний шлях з часом.",
+    "totalSessions": "Всього Сесій",
+    "totalMinutes": "Всього Хвилин",
+    "avgScore": "Середня Оцінка",
+    "favoriteTherapist": "Улюблений Терапевт",
+    "scoreOverTime": "Оцінка з Часом",
+    "recentSessions": "Останні Сесії",
+    "noData": "Даних поки немає",
+    "noDataDesc": "Завершіть першу сесію, щоб побачити свій прогрес тут."
   },
   "credits": {
     "title": "Терапевтичні",

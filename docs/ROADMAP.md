@@ -57,20 +57,23 @@ TogetherTherapy is an AI-powered couples therapy platform providing 24/7 accessi
 
 | Feature                                          | Priority | Status      |
 | ------------------------------------------------ | -------- | ----------- |
-| Post-session AI-generated relationship insights  | P1       | Not Started |
-| Therapist continuity (past sessions, re-booking) | P1       | Not Started |
-| Progress tracking dashboard with visualizations  | P2       | Not Started |
+| Post-session AI-generated relationship insights  | P1       | Complete    |
+| Therapist continuity (past sessions, re-booking) | P1       | Complete    |
+| Progress tracking dashboard with visualizations  | P2       | Complete    |
+| Dark mode                                        | P2       | Complete    |
 | Couple accounts (linked user accounts)           | P2       | Not Started |
-| Dark mode                                        | P2       | Not Started |
 | Email notifications via SES                      | P3       | Not Started |
 | Mobile app (React Native / Expo)                 | P3       | Not Started |
 
 ## Completed Tasks
 
-| Date       | Task                                                          |
-| ---------- | ------------------------------------------------------------- |
-| 2026-03    | Full MVP built: frontend, backend, infrastructure, deployment |
-| 2026-03-19 | Phase 2: Documentation, tooling, tests (85 tests total)       |
-| 2026-03-19 | Phase 3: Web Speech → MediaRecorder + AWS Transcribe          |
-| 2026-03-19 | Phase 3: Structured JSON logging + CloudWatch monitoring      |
-| 2026-03-19 | Phase 3: Lambda JS → TypeScript migration                     |
+| Date       | Task                                                           |
+| ---------- | -------------------------------------------------------------- |
+| 2026-03    | Full MVP built: frontend, backend, infrastructure, deployment  |
+| 2026-03-19 | Phase 2: Documentation, tooling, tests (85 tests total)        |
+| 2026-03-19 | Phase 3: Web Speech → MediaRecorder + AWS Transcribe           |
+| 2026-03-19 | Phase 3: Structured JSON logging + CloudWatch monitoring       |
+| 2026-03-19 | Phase 3: Lambda JS → TypeScript migration                      |
+| 2026-03-19 | Phase 3: Loading/error states + Stripe webhook enforcement     |
+| 2026-03-20 | Phase 4: Post-session insights, therapist continuity, progress |
+| 2026-03-20 | Phase 4: Dark mode with class-based Tailwind toggle            |

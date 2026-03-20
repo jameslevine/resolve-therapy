@@ -1,19 +1,44 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Play, Square } from "lucide-react";
+import { ArrowLeft, Play, Square, Clock, ArrowRight } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import { THERAPIST_PROFILES } from "../lib/therapists-data";
+import { apiFetch } from "@/lib/api";
+import { useAuthStore } from "@/store/auth";
 import BookingModal from "../components/therapist/BookingModal";
+
+interface PastSession {
+  id: string;
+  therapistId: string;
+  status: string;
+  createdAt: string;
+  summary?: string;
+}
 
 export default function TherapistProfile() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
+  const user = useAuthStore((s) => s.user);
   const [showBooking, setShowBooking] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [pastSessions, setPastSessions] = useState<PastSession[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const therapist = THERAPIST_PROFILES.find((tp) => tp.id === id);
+
+  useEffect(() => {
+    if (!user?.sub || !id) return;
+    apiFetch(`/sessions?userId=${encodeURIComponent(user.sub)}`)
+      .then((res) => (res.ok ? res.json() : { sessions: [] }))
+      .then((data) => {
+        const filtered = (data.sessions || []).filter(
+          (s: PastSession) => s.therapistId === id && s.status === "completed",
+        );
+        setPastSessions(filtered.slice(0, 5));
+      })
+      .catch(() => {});
+  }, [user?.sub, id]);
 
   const handlePreview = useCallback(() => {
     if (!therapist) return;
@@ -152,6 +177,41 @@ export default function TherapistProfile() {
               </p>
             </div>
           </div>
+
+          {/* Past Sessions with this therapist */}
+          {pastSessions.length > 0 && (
+            <div className="mt-12">
+              <h2 className="text-xl font-semibold text-stone-900">
+                {t("therapists.pastSessions")}
+              </h2>
+              <div className="mt-4 space-y-3">
+                {pastSessions.map((session) => (
+                  <Link
+                    key={session.id}
+                    to={`/session/${session.id}/detail`}
+                    className="flex items-center justify-between rounded-xl border border-stone-200 bg-stone-50 px-5 py-4 transition hover:shadow-md"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2 text-sm text-stone-500">
+                        <Clock className="h-3.5 w-3.5" />
+                        {new Date(session.createdAt).toLocaleDateString(undefined, {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </div>
+                      {session.summary && (
+                        <p className="mt-1 text-sm text-stone-600 line-clamp-1">
+                          {session.summary}
+                        </p>
+                      )}
+                    </div>
+                    <ArrowRight className="h-4 w-4 flex-shrink-0 text-stone-400" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

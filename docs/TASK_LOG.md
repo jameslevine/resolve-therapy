@@ -2,22 +2,26 @@
 
 ## Current Task
 
-- **Task**: Phase 3 - Loading/error states + Stripe webhook enforcement
-- **Started**: 2026-03-19
-- **Context**: Phase 2 complete. Adding user-visible error states to Dashboard and SessionInterface, enforcing Stripe webhook signature verification.
-- **Progress**: In progress
+- **Task**: Phase 4 complete — Features & Growth
+- **Started**: 2026-03-20
+- **Context**: Phases 1-4 complete. All core features implemented.
+- **Progress**: Complete
 
 ## Completed Tasks
 
-| Date       | Task                                            | Notes                                                                                      |
-| ---------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| 2026-03-19 | Lambda TypeScript migration                     | 3 handlers + 4 lib files migrated, strict types, 61 tests passing                          |
-| 2026-03-19 | Structured JSON logging + CloudWatch monitoring | Logger lib, 3 Log Groups, Metric Filters, Alarms, Dashboard in CloudFormation              |
-| 2026-03-19 | Replace Web Speech API with AWS Transcribe      | MediaRecorder + AnalyserNode VAD, cross-browser, 20 language translations for transcribing |
-| 2026-03-19 | Unit tests (85 total)                           | 24 frontend + 61 Lambda tests across 11 suites                                             |
-| 2026-03-19 | Phase 2 foundation & quality                    | Docs, .env.example, README, Husky, commitlint, Prettier, lint-staged, therapist sync       |
-| 2026-03-19 | Full MVP implementation                         | Frontend (React/Vite/Tailwind), Backend (3 Lambda), Infra (CloudFormation), deploy.sh      |
-| 2026-03-19 | Project deep dive and analysis                  | Identified gaps: no docs, no tests, outdated .env.example, backend therapist mismatch      |
+| Date       | Task                                            | Notes                                                                       |
+| ---------- | ----------------------------------------------- | --------------------------------------------------------------------------- |
+| 2026-03-20 | Dark mode                                       | Class-based Tailwind toggle, theme store, CSS overrides, navbar toggle      |
+| 2026-03-20 | Progress tracking dashboard                     | /progress page with stats, score chart, session history, backend endpoint   |
+| 2026-03-20 | Therapist continuity                            | Past sessions on therapist profile, "Book Again" on session detail          |
+| 2026-03-20 | Post-session AI insights                        | Patterns, strengths, action items, communication score via Bedrock          |
+| 2026-03-19 | Loading/error states + Stripe webhook           | Dashboard error+retry, session error toast, webhook signature enforcement   |
+| 2026-03-19 | Lambda TypeScript migration                     | 3 handlers + 4 lib files migrated, strict types, 62 tests passing           |
+| 2026-03-19 | Structured JSON logging + CloudWatch monitoring | Logger lib, Log Groups, Metric Filters, Alarms, Dashboard in CloudFormation |
+| 2026-03-19 | Replace Web Speech API with AWS Transcribe      | MediaRecorder + AnalyserNode VAD, cross-browser                             |
+| 2026-03-19 | Unit tests (86 total)                           | 24 frontend + 62 Lambda tests across 11 suites                              |
+| 2026-03-19 | Phase 2 foundation & quality                    | Docs, .env.example, README, Husky, commitlint, Prettier, lint-staged        |
+| 2026-03-19 | Full MVP implementation                         | Frontend, Backend (3 Lambda), Infra (CloudFormation), deploy.sh             |
 
 ## Blocked / Pending
 
@@ -25,6 +29,6 @@
 
 ## Next Up
 
-1. Phase 4: Post-session AI-generated relationship insights
-2. Phase 4: Therapist continuity (past sessions, re-booking)
-3. Phase 4: Progress tracking dashboard
+1. Couple accounts (linked user accounts)
+2. Email notifications via SES
+3. Mobile app (React Native / Expo)

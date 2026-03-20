@@ -23,6 +23,7 @@ import CreditsPage from "./pages/Credits";
 import NewSessionPage from "./pages/NewSession";
 import SessionDetailPage from "./pages/SessionDetail";
 import AccountPage from "./pages/Account";
+import ProgressPage from "./pages/Progress";
 
 export default function App() {
   const { i18n } = useTranslation();
@@ -41,7 +42,7 @@ export default function App() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen pt-16">
+      <main className="min-h-screen pt-16 bg-white dark:bg-stone-900 dark:text-stone-100">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
@@ -91,6 +92,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/progress"
+            element={
+              <ProtectedRoute>
+                <ProgressPage />
               </ProtectedRoute>
             }
           />
