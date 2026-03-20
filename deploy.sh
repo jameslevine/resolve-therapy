@@ -1,8 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 
+ENV="${1:-dev}"
+if [[ "$ENV" != "dev" && "$ENV" != "prod" ]]; then
+  echo "Usage: ./deploy.sh [dev|prod]"
+  exit 1
+fi
+
 REGION="eu-west-2"
-STACK_NAME="resolve-therapy"
+STACK_NAME="resolve-therapy-${ENV}"
 TEMPLATE_FILE="infrastructure/template.yaml"
 LAMBDA_DIR="lambda"
 FRONTEND_BUCKET=""
@@ -39,11 +45,14 @@ aws cloudformation deploy \
   --template-file "$TEMPLATE_FILE" \
   --capabilities CAPABILITY_NAMED_IAM \
   --parameter-overrides \
+    Environment="${ENV}" \
+    FrontendBucketName="resolve-therapy-${ENV}-frontend" \
+    TableName="resolve-therapy-${ENV}" \
     ElevenLabsApiKey="${ELEVENLABS_API_KEY}" \
     StripeSecretKey="${STRIPE_SECRET_KEY}" \
     SessionPriceCents="${SESSION_PRICE_CENTS:-4900}" \
     BedrockModelId="${BEDROCK_MODEL_ID:-anthropic.claude-sonnet-4-6}" \
-    TranscribeBucket="${TRANSCRIBE_BUCKET:-resolve-therapy-frontend}" \
+    TranscribeBucket="resolve-therapy-${ENV}-frontend" \
   --no-fail-on-empty-changeset
 
 # Step 2: Get stack outputs
@@ -66,13 +75,14 @@ log "CloudFront: $CF_DOMAIN"
 
 # Step 3: Update Lambda FRONTEND_URL with CloudFront domain
 log "Updating Lambda FRONTEND_URL..."
-for FUNC_NAME in "${STACK_NAME}-checkout" "${STACK_NAME}-sessions" "${STACK_NAME}-voice"; do
+for SUFFIX in checkout sessions voice; do
+  FUNC_NAME="resolve-therapy-${ENV}-${SUFFIX}"
   CURRENT_ENV=$(aws lambda get-function-configuration \
     --region "$REGION" \
     --function-name "$FUNC_NAME" \
     --query "Environment.Variables" \
     --output json 2>/dev/null || echo "{}")
-  
+
   UPDATED_ENV=$(echo "$CURRENT_ENV" | python3 -c "
 import sys, json
 env = json.load(sys.stdin)
@@ -82,7 +92,7 @@ if not url.startswith('https://'):
 env['FRONTEND_URL'] = url
 print(json.dumps({'Variables': env}))
 ")
-  
+
   aws lambda update-function-configuration \
     --region "$REGION" \
     --function-name "$FUNC_NAME" \
@@ -110,7 +120,8 @@ cd ..
 
 # Step 5: Deploy Lambda code
 log "Deploying Lambda code..."
-for FUNC_NAME in "${STACK_NAME}-checkout" "${STACK_NAME}-sessions" "${STACK_NAME}-voice"; do
+for SUFFIX in checkout sessions voice; do
+  FUNC_NAME="resolve-therapy-${ENV}-${SUFFIX}"
   aws lambda update-function-code \
     --region "$REGION" \
     --function-name "$FUNC_NAME" \

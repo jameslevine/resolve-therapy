@@ -61,6 +61,8 @@ TogetherTherapy is an AI-powered couples therapy platform providing 24/7 accessi
 | Therapist continuity (past sessions, re-booking) | P1       | Complete    |
 | Progress tracking dashboard with visualizations  | P2       | Complete    |
 | Dark mode                                        | P2       | Complete    |
+| CI/CD with GitHub Actions (dev + prod)           | P1       | Complete    |
+| Environment-based CloudFormation (dev/prod)      | P1       | Complete    |
 | Couple accounts (linked user accounts)           | P2       | Not Started |
 | Email notifications via SES                      | P3       | Not Started |
 | Mobile app (React Native / Expo)                 | P3       | Not Started |
@@ -77,3 +79,5 @@ TogetherTherapy is an AI-powered couples therapy platform providing 24/7 accessi
 | 2026-03-19 | Phase 3: Loading/error states + Stripe webhook enforcement     |
 | 2026-03-20 | Phase 4: Post-session insights, therapist continuity, progress |
 | 2026-03-20 | Phase 4: Dark mode with class-based Tailwind toggle            |
+| 2026-03-20 | CI/CD: GitHub Actions (ci, deploy-dev, deploy-prod workflows)  |
+| 2026-03-20 | Environment-based CFN naming (dev/prod stack isolation)        |

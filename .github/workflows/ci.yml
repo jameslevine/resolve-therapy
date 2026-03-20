@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  workflow_call:
+
+jobs:
+  lint-typecheck-test:
+    name: Lint, Type Check & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Install Lambda dependencies
+        run: cd lambda && npm ci
+
+      - name: ESLint
+        run: npx eslint .
+
+      - name: TypeScript type check (frontend)
+        run: npx tsc -b --noEmit
+
+      - name: TypeScript type check (Lambda)
+        run: cd lambda && npx tsc --noEmit
+
+      - name: Prettier check
+        run: npx prettier --check .
+
+      - name: Frontend tests
+        run: npm test -- --ci
+
+      - name: Lambda tests
+        run: cd lambda && npm test -- --ci
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: lint-typecheck-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Install Lambda dependencies
+        run: cd lambda && npm ci
+
+      - name: Build Lambda
+        run: cd lambda && npm run build
+
+      - name: Build frontend
+        run: npm run build
+        env:
+          VITE_API_URL: https://placeholder.execute-api.eu-west-2.amazonaws.com/prod
+          VITE_STRIPE_PUBLISHABLE_KEY: pk_placeholder
+          VITE_COGNITO_USER_POOL_ID: eu-west-2_placeholder
+          VITE_COGNITO_CLIENT_ID: placeholder
+
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: dist/
+          retention-days: 1
+
+      - name: Upload Lambda artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lambda-dist
+          path: |
+            lambda/dist/
+            lambda/node_modules/
+            lambda/package.json
+          retention-days: 1

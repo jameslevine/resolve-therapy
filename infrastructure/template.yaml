@@ -2,6 +2,12 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Resolve Therapy - Serverless Vite SPA on AWS
 
 Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
   FrontendBucketName:
     Type: String
     Default: resolve-therapy-frontend
@@ -36,7 +42,7 @@ Resources:
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      UserPoolName: resolve-therapy-users
+      UserPoolName: !Sub "resolve-therapy-${Environment}-users"
       AutoVerifiedAttributes:
         - email
       UsernameAttributes:
@@ -65,7 +71,7 @@ Resources:
   UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
-      ClientName: resolve-therapy-web
+      ClientName: !Sub "resolve-therapy-${Environment}-web"
       UserPoolId: !Ref UserPool
       ExplicitAuthFlows:
         - ALLOW_USER_SRP_AUTH
@@ -199,7 +205,7 @@ Resources:
   LambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: resolve-therapy-lambda-role
+      RoleName: !Sub "resolve-therapy-${Environment}-lambda-role"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -260,7 +266,7 @@ Resources:
   CheckoutFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: resolve-therapy-checkout
+      FunctionName: !Sub "resolve-therapy-${Environment}-checkout"
       Runtime: nodejs22.x
       Handler: checkout.handler
       Role: !GetAtt LambdaExecutionRole.Arn
@@ -284,7 +290,7 @@ Resources:
   SessionsFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: resolve-therapy-sessions
+      FunctionName: !Sub "resolve-therapy-${Environment}-sessions"
       Runtime: nodejs22.x
       Handler: sessions.handler
       Role: !GetAtt LambdaExecutionRole.Arn
@@ -308,7 +314,7 @@ Resources:
   VoiceFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: resolve-therapy-voice
+      FunctionName: !Sub "resolve-therapy-${Environment}-voice"
       Runtime: nodejs22.x
       Handler: voice.handler
       Role: !GetAtt LambdaExecutionRole.Arn
@@ -336,7 +342,7 @@ Resources:
   ApiGateway:
     Type: AWS::ApiGateway::RestApi
     Properties:
-      Name: resolve-therapy-api
+      Name: !Sub "resolve-therapy-${Environment}-api"
       BinaryMediaTypes:
         - multipart/form-data
         - audio/webm
@@ -618,19 +624,19 @@ Resources:
   CheckoutLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /aws/lambda/resolve-therapy-checkout
+      LogGroupName: !Sub "/aws/lambda/resolve-therapy-${Environment}-checkout"
       RetentionInDays: 30
 
   SessionsLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /aws/lambda/resolve-therapy-sessions
+      LogGroupName: !Sub "/aws/lambda/resolve-therapy-${Environment}-sessions"
       RetentionInDays: 30
 
   VoiceLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /aws/lambda/resolve-therapy-voice
+      LogGroupName: !Sub "/aws/lambda/resolve-therapy-${Environment}-voice"
       RetentionInDays: 30
 
   # ============================================================
@@ -675,7 +681,7 @@ Resources:
   HighErrorRateAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      AlarmName: resolve-therapy-high-error-rate
+      AlarmName: !Sub "resolve-therapy-${Environment}-high-error-rate"
       AlarmDescription: Triggers when total Lambda errors exceed 10 in 5 minutes
       Namespace: ResolveTherapy
       MetricName: SessionsErrors
@@ -692,7 +698,7 @@ Resources:
   MonitoringDashboard:
     Type: AWS::CloudWatch::Dashboard
     Properties:
-      DashboardName: resolve-therapy
+      DashboardName: !Sub "resolve-therapy-${Environment}"
       DashboardBody: !Sub |
         {
           "widgets": [
@@ -705,9 +711,9 @@ Resources:
               "properties": {
                 "title": "Lambda Invocations",
                 "metrics": [
-                  ["AWS/Lambda", "Invocations", "FunctionName", "resolve-therapy-sessions"],
-                  ["AWS/Lambda", "Invocations", "FunctionName", "resolve-therapy-checkout"],
-                  ["AWS/Lambda", "Invocations", "FunctionName", "resolve-therapy-voice"]
+                  ["AWS/Lambda", "Invocations", "FunctionName", "resolve-therapy-${Environment}-sessions"],
+                  ["AWS/Lambda", "Invocations", "FunctionName", "resolve-therapy-${Environment}-checkout"],
+                  ["AWS/Lambda", "Invocations", "FunctionName", "resolve-therapy-${Environment}-voice"]
                 ],
                 "period": 300,
                 "stat": "Sum",
@@ -723,9 +729,9 @@ Resources:
               "properties": {
                 "title": "Lambda Errors",
                 "metrics": [
-                  ["AWS/Lambda", "Errors", "FunctionName", "resolve-therapy-sessions"],
-                  ["AWS/Lambda", "Errors", "FunctionName", "resolve-therapy-checkout"],
-                  ["AWS/Lambda", "Errors", "FunctionName", "resolve-therapy-voice"]
+                  ["AWS/Lambda", "Errors", "FunctionName", "resolve-therapy-${Environment}-sessions"],
+                  ["AWS/Lambda", "Errors", "FunctionName", "resolve-therapy-${Environment}-checkout"],
+                  ["AWS/Lambda", "Errors", "FunctionName", "resolve-therapy-${Environment}-voice"]
                 ],
                 "period": 300,
                 "stat": "Sum",
@@ -741,9 +747,9 @@ Resources:
               "properties": {
                 "title": "Lambda Duration (avg)",
                 "metrics": [
-                  ["AWS/Lambda", "Duration", "FunctionName", "resolve-therapy-sessions"],
-                  ["AWS/Lambda", "Duration", "FunctionName", "resolve-therapy-checkout"],
-                  ["AWS/Lambda", "Duration", "FunctionName", "resolve-therapy-voice"]
+                  ["AWS/Lambda", "Duration", "FunctionName", "resolve-therapy-${Environment}-sessions"],
+                  ["AWS/Lambda", "Duration", "FunctionName", "resolve-therapy-${Environment}-checkout"],
+                  ["AWS/Lambda", "Duration", "FunctionName", "resolve-therapy-${Environment}-voice"]
                 ],
                 "period": 300,
                 "stat": "Average",
@@ -777,7 +783,7 @@ Resources:
               "properties": {
                 "title": "API Gateway Requests",
                 "metrics": [
-                  ["AWS/ApiGateway", "Count", "ApiName", "resolve-therapy-api"]
+                  ["AWS/ApiGateway", "Count", "ApiName", "resolve-therapy-${Environment}-api"]
                 ],
                 "period": 300,
                 "stat": "Sum",
@@ -793,8 +799,8 @@ Resources:
               "properties": {
                 "title": "API Gateway 4xx/5xx Errors",
                 "metrics": [
-                  ["AWS/ApiGateway", "4XXError", "ApiName", "resolve-therapy-api"],
-                  ["AWS/ApiGateway", "5XXError", "ApiName", "resolve-therapy-api"]
+                  ["AWS/ApiGateway", "4XXError", "ApiName", "resolve-therapy-${Environment}-api"],
+                  ["AWS/ApiGateway", "5XXError", "ApiName", "resolve-therapy-${Environment}-api"]
                 ],
                 "period": 300,
                 "stat": "Sum",

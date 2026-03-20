@@ -2,15 +2,16 @@
 
 ## Current Task
 
-- **Task**: Phase 4 complete — Features & Growth
+- **Task**: CI/CD setup with GitHub Actions
 - **Started**: 2026-03-20
-- **Context**: Phases 1-4 complete. All core features implemented.
+- **Context**: Full CI/CD pipeline with separate dev and prod environments
 - **Progress**: Complete
 
 ## Completed Tasks
 
 | Date       | Task                                            | Notes                                                                       |
 | ---------- | ----------------------------------------------- | --------------------------------------------------------------------------- |
+| 2026-03-20 | CI/CD with GitHub Actions                       | ci.yml, deploy-dev.yml, deploy-prod.yml; SSH remote; env-based CFN naming   |
 | 2026-03-20 | Dark mode                                       | Class-based Tailwind toggle, theme store, CSS overrides, navbar toggle      |
 | 2026-03-20 | Progress tracking dashboard                     | /progress page with stats, score chart, session history, backend endpoint   |
 | 2026-03-20 | Therapist continuity                            | Past sessions on therapist profile, "Book Again" on session detail          |
