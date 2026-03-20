@@ -117,13 +117,11 @@ describe("bedrock getTherapistResponse", () => {
       output: { message: { content: [{ text: "Hello Alice and Bob." }] } },
     });
 
-    await getTherapistResponse(
-      "prompt",
-      "",
-      [],
-      [{ content: "Hello", isTherapist: false }],
-      { names: ["Alice", "Bob"], relationship: "Married", context: "10 years" },
-    );
+    await getTherapistResponse("prompt", "", [], [{ content: "Hello", isTherapist: false }], {
+      names: ["Alice", "Bob"],
+      relationship: "Married",
+      context: "10 years",
+    });
 
     const commandCall = mockBedrockSend.mock.calls[0][0];
     const systemTexts = commandCall.system.map((s) => s.text).join(" ");

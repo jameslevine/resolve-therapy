@@ -272,7 +272,9 @@ describe("sessions handler", () => {
     it("ends session, saves transcript, and deducts minutes", async () => {
       const createdAt = new Date(Date.now() - 15 * 60000).toISOString(); // 15 mins ago
       mockSend
-        .mockResolvedValueOnce({ Item: { userId: "user-123", createdAt, therapistId: "dr-sarah-chen" } }) // get session
+        .mockResolvedValueOnce({
+          Item: { userId: "user-123", createdAt, therapistId: "dr-sarah-chen" },
+        }) // get session
         .mockResolvedValueOnce({}) // update credits
         .mockResolvedValueOnce({}) // put transcript
         .mockResolvedValueOnce({}) // update session (summary generation will fail since bedrock isn't mocked at module level)

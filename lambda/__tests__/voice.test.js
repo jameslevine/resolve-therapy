@@ -179,14 +179,12 @@ describe("voice handler", () => {
         },
       };
 
-      mockTranscribeSend
-        .mockResolvedValueOnce({})
-        .mockResolvedValueOnce({
-          TranscriptionJob: {
-            TranscriptionJobStatus: "COMPLETED",
-            Transcript: { TranscriptFileUri: "https://s3.amazonaws.com/transcript.json" },
-          },
-        });
+      mockTranscribeSend.mockResolvedValueOnce({}).mockResolvedValueOnce({
+        TranscriptionJob: {
+          TranscriptionJobStatus: "COMPLETED",
+          Transcript: { TranscriptFileUri: "https://s3.amazonaws.com/transcript.json" },
+        },
+      });
 
       mockFetch.mockResolvedValue({
         json: () => Promise.resolve(transcriptResult),
@@ -208,7 +206,10 @@ describe("voice handler", () => {
 
       // Verify Transcribe job used correct format
       const { StartTranscriptionJobCommand } = require("@aws-sdk/client-transcribe");
-      const transcribeCall = StartTranscriptionJobCommand.mock.calls[StartTranscriptionJobCommand.mock.calls.length - 1][0];
+      const transcribeCall =
+        StartTranscriptionJobCommand.mock.calls[
+          StartTranscriptionJobCommand.mock.calls.length - 1
+        ][0];
       expect(transcribeCall.MediaFormat).toBe("mp4");
     });
 
@@ -225,14 +226,12 @@ describe("voice handler", () => {
 
     it("returns empty segments when transcription fails", async () => {
       mockS3Send.mockResolvedValue({});
-      mockTranscribeSend
-        .mockResolvedValueOnce({})
-        .mockResolvedValueOnce({
-          TranscriptionJob: {
-            TranscriptionJobStatus: "FAILED",
-            FailureReason: "Audio too short",
-          },
-        });
+      mockTranscribeSend.mockResolvedValueOnce({}).mockResolvedValueOnce({
+        TranscriptionJob: {
+          TranscriptionJobStatus: "FAILED",
+          FailureReason: "Audio too short",
+        },
+      });
 
       const audioBase64 = Buffer.from("short").toString("base64");
       const result = await handler({
