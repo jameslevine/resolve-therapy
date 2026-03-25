@@ -86,9 +86,8 @@ for SUFFIX in checkout sessions voice; do
   UPDATED_ENV=$(echo "$CURRENT_ENV" | python3 -c "
 import sys, json
 env = json.load(sys.stdin)
-url = '${CF_DOMAIN}'
-if not url.startswith('https://'):
-    url = 'https://' + url
+url = '${CF_DOMAIN}'.replace('https://', '').replace('http://', '')
+url = 'https://' + url
 env['FRONTEND_URL'] = url
 print(json.dumps({'Variables': env}))
 ")
