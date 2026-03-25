@@ -389,6 +389,7 @@
     "feature2": "Rozpoznawanie głosu dla obojga partnerów",
     "feature3": "Transkrypt i pamięć sesji",
     "cost": "Koszt sesji",
+    "creditPerMinute": "credit per minute (pay as you go)",
     "balanceLabel": "Saldo"
   },
   "auth": {
@@ -438,8 +439,8 @@
     "myAccount": "Moje konto"
   },
   "currency": {
-    "symbol": "zł",
-    "code": "PLN",
-    "sessionPrice": "199"
+    "symbol": "$",
+    "code": "USD",
+    "sessionPrice": "29"
   }
 }

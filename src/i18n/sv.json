@@ -389,6 +389,7 @@
     "feature2": "Röstigenkänning för båda partners",
     "feature3": "Sessionsutskrift och minne",
     "cost": "Sessionskostnad",
+    "creditPerMinute": "credit per minute (pay as you go)",
     "balanceLabel": "Saldo"
   },
   "auth": {
@@ -438,8 +439,8 @@
     "myAccount": "Mitt konto"
   },
   "currency": {
-    "symbol": "kr",
-    "code": "SEK",
-    "sessionPrice": "529"
+    "symbol": "$",
+    "code": "USD",
+    "sessionPrice": "29"
   }
 }

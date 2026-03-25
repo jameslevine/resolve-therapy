@@ -389,6 +389,7 @@
     "feature2": "두 파트너 모두를 위한 음성 인식",
     "feature3": "세션 기록 및 기억",
     "cost": "세션 비용",
+    "creditPerMinute": "credit per minute (pay as you go)",
     "balanceLabel": "잔액"
   },
   "auth": {
@@ -438,8 +439,8 @@
     "myAccount": "내 계정"
   },
   "currency": {
-    "symbol": "₩",
-    "code": "KRW",
-    "sessionPrice": "65000"
+    "symbol": "$",
+    "code": "USD",
+    "sessionPrice": "29"
   }
 }

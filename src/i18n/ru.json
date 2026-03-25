@@ -389,6 +389,7 @@
     "feature2": "Распознавание голоса для обоих партнёров",
     "feature3": "Стенограмма и память сессий",
     "cost": "Стоимость сессии",
+    "creditPerMinute": "credit per minute (pay as you go)",
     "balanceLabel": "Баланс"
   },
   "auth": {
@@ -438,8 +439,8 @@
     "myAccount": "Мой аккаунт"
   },
   "currency": {
-    "symbol": "₽",
-    "code": "RUB",
-    "sessionPrice": "4500"
+    "symbol": "$",
+    "code": "USD",
+    "sessionPrice": "29"
   }
 }

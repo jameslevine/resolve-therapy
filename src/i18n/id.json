@@ -389,6 +389,7 @@
     "feature2": "Pengenalan suara untuk kedua pasangan",
     "feature3": "Transkrip dan memori sesi",
     "cost": "Biaya sesi",
+    "creditPerMinute": "credit per minute (pay as you go)",
     "balanceLabel": "Saldo"
   },
   "auth": {
@@ -438,8 +439,8 @@
     "myAccount": "Akun Saya"
   },
   "currency": {
-    "symbol": "Rp",
-    "code": "IDR",
-    "sessionPrice": "750000"
+    "symbol": "$",
+    "code": "USD",
+    "sessionPrice": "29"
   }
 }

@@ -94,24 +94,24 @@ export default function Credits() {
         </div>
       </section>
 
-      {purchaseSuccess && (
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 -mb-8 pt-8">
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-4 text-center">
-            <p className="font-medium text-emerald-800">{t("credits.purchaseSuccess")}</p>
-          </div>
-        </div>
-      )}
-
-      {error && (
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 -mb-8 pt-8">
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-4 text-center">
-            <p className="font-medium text-red-800">{error}</p>
-          </div>
-        </div>
-      )}
-
       <section className="bg-white py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {purchaseSuccess && (
+            <div className="mx-auto mb-8 max-w-4xl">
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-4 text-center">
+                <p className="font-medium text-emerald-800">{t("credits.purchaseSuccess")}</p>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="mx-auto mb-8 max-w-4xl">
+              <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-4 text-center">
+                <p className="font-medium text-red-800">{error}</p>
+              </div>
+            </div>
+          )}
+
           <div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-3">
             {PACKAGES.map((pkg) => (
               <div

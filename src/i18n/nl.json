@@ -389,6 +389,7 @@
     "feature2": "Stemherkenning voor beide partners",
     "feature3": "Sessietranscript en geheugen",
     "cost": "Sessiekosten",
+    "creditPerMinute": "credit per minute (pay as you go)",
     "balanceLabel": "Saldo"
   },
   "auth": {
@@ -438,8 +439,8 @@
     "myAccount": "Mijn account"
   },
   "currency": {
-    "symbol": "€",
-    "code": "EUR",
-    "sessionPrice": "49"
+    "symbol": "$",
+    "code": "USD",
+    "sessionPrice": "29"
   }
 }

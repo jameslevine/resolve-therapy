@@ -389,6 +389,7 @@
     "feature2": "Her iki partner için ses tanıma",
     "feature3": "Seans transkripti ve hafızası",
     "cost": "Seans maliyeti",
+    "creditPerMinute": "credit per minute (pay as you go)",
     "balanceLabel": "Bakiye"
   },
   "auth": {
@@ -438,8 +439,8 @@
     "myAccount": "Hesabım"
   },
   "currency": {
-    "symbol": "₺",
-    "code": "TRY",
-    "sessionPrice": "1500"
+    "symbol": "$",
+    "code": "USD",
+    "sessionPrice": "29"
   }
 }

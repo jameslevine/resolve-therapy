@@ -389,6 +389,7 @@
     "feature2": "Розпізнавання голосу для обох партнерів",
     "feature3": "Транскрипт і пам'ять сесій",
     "cost": "Вартість сесії",
+    "creditPerMinute": "credit per minute (pay as you go)",
     "balanceLabel": "Баланс"
   },
   "auth": {
@@ -438,8 +439,8 @@
     "myAccount": "Мій обліковий запис"
   },
   "currency": {
-    "symbol": "₴",
-    "code": "UAH",
-    "sessionPrice": "2000"
+    "symbol": "$",
+    "code": "USD",
+    "sessionPrice": "29"
   }
 }

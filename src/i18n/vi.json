@@ -389,6 +389,7 @@
     "feature2": "Nhận dạng giọng nói cho cả hai đối tác",
     "feature3": "Bản ghi và bộ nhớ phiên",
     "cost": "Chi phí phiên",
+    "creditPerMinute": "credit per minute (pay as you go)",
     "balanceLabel": "Số dư"
   },
   "auth": {
@@ -438,8 +439,8 @@
     "myAccount": "Tài Khoản Của Tôi"
   },
   "currency": {
-    "symbol": "₫",
-    "code": "VND",
-    "sessionPrice": "1200000"
+    "symbol": "$",
+    "code": "USD",
+    "sessionPrice": "29"
   }
 }

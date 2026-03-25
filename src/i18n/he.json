@@ -389,6 +389,7 @@
     "feature2": "זיהוי קול לשני בני הזוג",
     "feature3": "תמליל וזיכרון פגישות",
     "cost": "עלות פגישה",
+    "creditPerMinute": "credit per minute (pay as you go)",
     "balanceLabel": "יתרה"
   },
   "auth": {
@@ -438,8 +439,8 @@
     "myAccount": "החשבון שלי"
   },
   "currency": {
-    "symbol": "₪",
-    "code": "ILS",
-    "sessionPrice": "179"
+    "symbol": "$",
+    "code": "USD",
+    "sessionPrice": "29"
   }
 }

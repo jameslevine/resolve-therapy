@@ -388,7 +388,8 @@
     "feature1": "AI therapy on your schedule",
     "feature2": "Voice recognition for both partners",
     "feature3": "Session transcript and memory",
-    "cost": "Session cost",
+    "cost": "Pricing",
+    "creditPerMinute": "credit per minute (pay as you go)",
     "balanceLabel": "Balance"
   },
   "auth": {
@@ -440,6 +441,6 @@
   "currency": {
     "symbol": "$",
     "code": "USD",
-    "sessionPrice": "49"
+    "sessionPrice": "29"
   }
 }

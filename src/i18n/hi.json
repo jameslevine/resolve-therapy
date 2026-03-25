@@ -389,6 +389,7 @@
     "feature2": "दोनों साथियों के लिए आवाज़ पहचान",
     "feature3": "सत्र का ट्रांसक्रिप्ट और स्मृति",
     "cost": "सत्र की लागत",
+    "creditPerMinute": "credit per minute (pay as you go)",
     "balanceLabel": "बैलेंस"
   },
   "auth": {
@@ -438,8 +439,8 @@
     "myAccount": "मेरा अकाउंट"
   },
   "currency": {
-    "symbol": "₹",
-    "code": "INR",
-    "sessionPrice": "4000"
+    "symbol": "$",
+    "code": "USD",
+    "sessionPrice": "29"
   }
 }

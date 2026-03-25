@@ -389,6 +389,7 @@
     "feature2": "両パートナーの音声認識",
     "feature3": "セッションのトランスクリプトと記憶",
     "cost": "セッション費用",
+    "creditPerMinute": "credit per minute (pay as you go)",
     "balanceLabel": "残高"
   },
   "auth": {
@@ -438,8 +439,8 @@
     "myAccount": "マイアカウント"
   },
   "currency": {
-    "symbol": "¥",
-    "code": "JPY",
-    "sessionPrice": "7500"
+    "symbol": "$",
+    "code": "USD",
+    "sessionPrice": "29"
   }
 }

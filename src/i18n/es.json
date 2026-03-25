@@ -389,6 +389,7 @@
     "feature2": "Reconocimiento de voz para ambos miembros de la pareja",
     "feature3": "Transcripcion y memoria de sesion",
     "cost": "Costo de sesion",
+    "creditPerMinute": "credit per minute (pay as you go)",
     "balanceLabel": "Saldo"
   },
   "auth": {
@@ -438,8 +439,8 @@
     "myAccount": "Mi Cuenta"
   },
   "currency": {
-    "symbol": "EUR",
-    "code": "EUR",
-    "sessionPrice": "45"
+    "symbol": "$",
+    "code": "USD",
+    "sessionPrice": "29"
   }
 }

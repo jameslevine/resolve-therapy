@@ -389,6 +389,7 @@
     "feature2": "การจดจำเสียงสำหรับทั้งสองคน",
     "feature3": "ข้อความถอดความและหน่วยความจำเซสชัน",
     "cost": "ค่าใช้จ่ายเซสชัน",
+    "creditPerMinute": "credit per minute (pay as you go)",
     "balanceLabel": "ยอดคงเหลือ"
   },
   "auth": {
@@ -438,8 +439,8 @@
     "myAccount": "บัญชีของฉัน"
   },
   "currency": {
-    "symbol": "฿",
-    "code": "THB",
-    "sessionPrice": "1700"
+    "symbol": "$",
+    "code": "USD",
+    "sessionPrice": "29"
   }
 }

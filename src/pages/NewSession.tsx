@@ -396,9 +396,11 @@ export default function NewSession() {
                 <span className="text-sm font-medium text-stone-700">{t("credits.cost")}</span>
               </div>
               <div className="text-end">
-                <span className="text-lg font-bold text-rose-600">1 {t("credits.credit")}</span>
+                <span className="text-lg font-bold text-rose-600">
+                  1 {t("credits.creditPerMinute")}
+                </span>
                 <p className="text-xs text-stone-500">
-                  {t("credits.balanceLabel")}: {balance}
+                  {t("credits.balanceLabel")}: {balance} {t("credits.minutes")}
                 </p>
               </div>
             </div>

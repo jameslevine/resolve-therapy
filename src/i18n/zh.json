@@ -389,6 +389,7 @@
     "feature2": "双方的语音识别",
     "feature3": "咨询文字记录和记忆",
     "cost": "咨询费用",
+    "creditPerMinute": "credit per minute (pay as you go)",
     "balanceLabel": "余额"
   },
   "auth": {
@@ -438,8 +439,8 @@
     "myAccount": "我的账户"
   },
   "currency": {
-    "symbol": "¥",
-    "code": "CNY",
-    "sessionPrice": "349"
+    "symbol": "$",
+    "code": "USD",
+    "sessionPrice": "29"
   }
 }

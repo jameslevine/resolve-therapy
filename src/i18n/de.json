@@ -389,6 +389,7 @@
     "feature2": "Spracherkennung für beide Partner",
     "feature3": "Sitzungsprotokoll und Gedächtnis",
     "cost": "Sitzungskosten",
+    "creditPerMinute": "credit per minute (pay as you go)",
     "balanceLabel": "Guthaben"
   },
   "auth": {
@@ -438,8 +439,8 @@
     "myAccount": "Mein Konto"
   },
   "currency": {
-    "symbol": "€",
-    "code": "EUR",
-    "sessionPrice": "49"
+    "symbol": "$",
+    "code": "USD",
+    "sessionPrice": "29"
   }
 }

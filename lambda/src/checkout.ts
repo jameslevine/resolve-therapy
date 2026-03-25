@@ -11,14 +11,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 interface CreditPackage {
   credits: number;
-  priceGBP: number;
+  priceUSD: number;
   name: string;
 }
 
 const CREDIT_PACKAGES: Record<string, CreditPackage> = {
-  "1": { credits: 60, priceGBP: 2900, name: "1 Hour (60 minutes)" },
-  "3": { credits: 180, priceGBP: 6900, name: "3 Hours (180 minutes)" },
-  "10": { credits: 600, priceGBP: 17900, name: "10 Hours (600 minutes)" },
+  "1": { credits: 60, priceUSD: 2900, name: "1 Hour (60 minutes)" },
+  "3": { credits: 180, priceUSD: 6900, name: "3 Hours (180 minutes)" },
+  "10": { credits: 600, priceUSD: 17900, name: "10 Hours (600 minutes)" },
 };
 
 let log: Logger;
@@ -77,7 +77,7 @@ async function handleBuyCredits(
         userId,
         packageId,
         credits: pkg.credits,
-        amount: pkg.priceGBP,
+        amount: pkg.priceUSD,
         status: "pending",
         createdAt: new Date().toISOString(),
       },
@@ -89,12 +89,12 @@ async function handleBuyCredits(
     line_items: [
       {
         price_data: {
-          currency: "gbp",
+          currency: "usd",
           product_data: {
             name: pkg.name,
             description: `${pkg.credits} AI therapy session credit${pkg.credits > 1 ? "s" : ""}`,
           },
-          unit_amount: pkg.priceGBP,
+          unit_amount: pkg.priceUSD,
         },
         quantity: 1,
       },
