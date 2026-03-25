@@ -457,7 +457,51 @@ Resources:
             method.response.header.Access-Control-Allow-Methods: true
             method.response.header.Access-Control-Allow-Origin: true
 
-  # ---- /checkout/{proxy+} resource ----
+  # ---- /checkout/webhook resource (unauthenticated for Stripe) ----
+  CheckoutWebhookResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ParentId: !Ref CheckoutResource
+      PathPart: webhook
+
+  CheckoutWebhookPostMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ResourceId: !Ref CheckoutWebhookResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:eu-west-2:lambda:path/2015-03-31/functions/${CheckoutFunction.Arn}/invocations"
+
+  CheckoutWebhookOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ResourceId: !Ref CheckoutWebhookResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,Stripe-Signature'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+      MethodResponses:
+        - StatusCode: "200"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  # ---- /checkout/{proxy+} resource (authenticated) ----
   CheckoutProxyResource:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -471,7 +515,8 @@ Resources:
       RestApiId: !Ref ApiGateway
       ResourceId: !Ref CheckoutProxyResource
       HttpMethod: ANY
-      AuthorizationType: NONE
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
@@ -645,6 +690,29 @@ Resources:
             method.response.header.Access-Control-Allow-Origin: true
 
   # ============================================================
+  # API Gateway Default Error Responses (CORS headers on 4XX/5XX)
+  # ============================================================
+  GatewayResponseDefault4XX:
+    Type: AWS::ApiGateway::GatewayResponse
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ResponseType: DEFAULT_4XX
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,Stripe-Signature'"
+        gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,PUT,DELETE,OPTIONS'"
+
+  GatewayResponseDefault5XX:
+    Type: AWS::ApiGateway::GatewayResponse
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ResponseType: DEFAULT_5XX
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token,Stripe-Signature'"
+        gatewayresponse.header.Access-Control-Allow-Methods: "'GET,POST,PUT,DELETE,OPTIONS'"
+
+  # ============================================================
   # API Gateway Deployment & Stage
   # ============================================================
   ApiDeployment:
@@ -652,6 +720,8 @@ Resources:
     DependsOn:
       - CognitoAuthorizer
       - CheckoutOptionsMethod
+      - CheckoutWebhookPostMethod
+      - CheckoutWebhookOptionsMethod
       - CheckoutProxyAnyMethod
       - CheckoutProxyOptionsMethod
       - SessionsGetMethod
@@ -660,9 +730,11 @@ Resources:
       - SessionsProxyOptionsMethod
       - VoiceProxyAnyMethod
       - VoiceProxyOptionsMethod
+      - GatewayResponseDefault4XX
+      - GatewayResponseDefault5XX
     Properties:
       RestApiId: !Ref ApiGateway
-      Description: "Deployment with Cognito auth on sessions and voice routes"
+      Description: "Deployment with Cognito auth, webhook split, and CORS error responses"
 
   # ============================================================
   # API Gateway Access Log Group
