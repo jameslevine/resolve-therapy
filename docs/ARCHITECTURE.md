@@ -20,18 +20,19 @@
 ### Frontend (React SPA)
 
 - **Framework**: React 19 + TypeScript, built with Vite 8
-- **Styling**: Tailwind CSS v4 with rose/stone color palette
-- **State**: Zustand (auth store, credits store)
+- **Styling**: Tailwind CSS v4 with rose/stone color palette, dark mode support
+- **State**: Zustand (auth store, credits store, theme store)
 - **Routing**: react-router-dom v7 (18 routes, 7 protected)
 - **i18n**: i18next with 20 languages, RTL support for Arabic/Hebrew
 - **Auth**: amazon-cognito-identity-js (direct Cognito integration)
-- **Voice**: Web Speech API for STT, Web Audio API for TTS playback
+- **Voice**: MediaRecorder + AWS Transcribe for STT, Web Audio API for TTS playback
+- **Icons**: lucide-react
 
 ### Backend (3 Lambda Functions)
 
-- **sessions**: Session CRUD, AI therapy responses via Bedrock, memory management
-- **checkout**: Stripe payment processing, credit balance management
-- **voice**: ElevenLabs TTS, AWS Transcribe STT with speaker diarization
+- **sessions**: Session CRUD, AI therapy responses via Bedrock, memory management, insights generation, progress aggregation
+- **checkout**: Stripe payment processing, credit balance management, webhook verification
+- **voice**: ElevenLabs TTS (eleven_multilingual_v2), AWS Transcribe STT with speaker diarization
 
 ### Infrastructure
 
@@ -39,6 +40,8 @@
 - **API**: API Gateway REST with proxy integration to Lambda
 - **Database**: DynamoDB single-table design (on-demand billing)
 - **Auth**: Cognito User Pool with email-based auth
+- **Monitoring**: CloudWatch Log Groups, Metric Filters, Alarms, Dashboard
+- **CI/CD**: GitHub Actions (ci.yml, deploy-dev.yml, deploy-prod.yml)
 - **Region**: eu-west-2
 
 ## Data Flow
@@ -47,12 +50,13 @@
 
 1. User creates session via 4-step wizard (therapist, participants, focus, review)
 2. `POST /sessions/start` validates credits, creates session record in DynamoDB
-3. User speaks -> Web Speech API captures text -> `POST /sessions/respond`
-4. Lambda fetches session + user memories from DynamoDB
-5. Bedrock generates therapist response with memory extraction
-6. New memories stored at session and user level in DynamoDB
-7. Response text sent to `POST /voice/speak` -> ElevenLabs TTS -> audio played
-8. On session end, `POST /sessions/{id}/end` saves transcript, generates summary, deducts minutes
+3. User speaks -> MediaRecorder captures audio -> `POST /voice/transcribe` via AWS Transcribe
+4. Transcribed text sent via `POST /sessions/respond`
+5. Lambda fetches session + user memories from DynamoDB
+6. Bedrock generates therapist response with memory extraction
+7. New memories stored at session and user level in DynamoDB
+8. Response text sent to `POST /voice/speak` -> ElevenLabs TTS -> audio played
+9. On session end, `POST /sessions/{id}/end` saves transcript, generates summary + insights, deducts minutes
 
 ### Payment Flow
 
@@ -61,7 +65,7 @@
 3. User redirected to Stripe checkout
 4. On success, redirected to `/credits?purchase=success&session_id=...`
 5. `GET /checkout/verify` verifies payment and fulfills credits (idempotent)
-6. Stripe webhook (`POST /checkout/webhook`) as backup fulfillment
+6. Stripe webhook (`POST /checkout/webhook`) as backup fulfillment (signature verified)
 
 ## DynamoDB Schema (Single Table)
 
@@ -70,6 +74,7 @@
 | Session Meta       | `SESSION#{id}`    | `META`         | `USER#{userId}` | `SESSION#{createdAt}` |
 | Session Transcript | `SESSION#{id}`    | `TRANSCRIPT`   | -               | -                     |
 | Session Memory     | `SESSION#{id}`    | `MEMORY#{key}` | -               | -                     |
+| Session Insights   | `SESSION#{id}`    | `INSIGHTS`     | -               | -                     |
 | User Credits       | `USER#{userId}`   | `CREDITS`      | -               | -                     |
 | User Memory        | `USER#{userId}`   | `MEMORY#{key}` | -               | -                     |
 | Order              | `ORDER#{orderId}` | `META`         | -               | -                     |
@@ -85,14 +90,39 @@ Categories: `CONFLICT_PATTERN`, `COMMUNICATION_STYLE`, `TRIGGER`, `PROGRESS`, `G
 
 Extracted from Bedrock responses via `<memory category="...">value</memory>` tags.
 
+## AI Insights System
+
+Post-session analysis generates structured insights:
+
+- **Communication Score** (0-100): Overall communication effectiveness
+- **Patterns**: Recurring interaction patterns identified
+- **Strengths**: Positive communication behaviors observed
+- **Action Items**: Specific exercises or practices recommended
+- **Emotional Themes**: Key emotions present in the session
+
 ## Security
 
-- Cognito JWT tokens for API authentication (frontend-side only currently)
-- API Gateway endpoints are unauthenticated (no Cognito authorizer configured)
+### Current State
+
+- Cognito JWT tokens sent by frontend in Authorization header
+- **API Gateway endpoints are unauthenticated** (no Cognito authorizer configured) - NEEDS FIX
+- **Lambda handlers do not validate JWT** - NEEDS FIX
 - S3 bucket fully private (OAC only)
-- Stripe webhook signature verification (optional, falls back to unsigned)
+- Stripe webhook signature verification enforced
 - HTTPS enforced via CloudFront
 - Secrets passed as CloudFormation parameters (NoEcho)
+- CORS allows wildcard origin (\*) - NEEDS RESTRICTION
+
+### Known Security Gaps (Phase 5)
+
+- No API-level authentication (any request reaches Lambda)
+- No ownership validation (user A can access user B's sessions)
+- No input size limits on voice endpoints
+- No prompt injection prevention for Bedrock
+- DynamoDB not encrypted at rest
+- S3 not encrypted at rest
+- No PITR backups on DynamoDB
+- IAM permissions too broad (Bedrock, Transcribe use Resource: \*)
 
 ## Scalability
 
@@ -100,6 +130,12 @@ Extracted from Bedrock responses via `<memory category="...">value</memory>` tag
 - Lambda: auto-scales per request (256MB, 60-120s timeout)
 - CloudFront: global CDN for frontend assets
 - Stateless architecture: no server-side sessions
+
+## Environment Separation
+
+- **Dev**: Stack `resolve-therapy-dev`, table `resolve-therapy-dev`, bucket `resolve-therapy-dev-frontend`
+- **Prod**: Stack `resolve-therapy-prod`, table `resolve-therapy-prod`, bucket `resolve-therapy-prod-frontend`
+- **Known issue**: API Gateway stage name hardcoded to "prod" for both environments
 
 ## Additional Documentation
 

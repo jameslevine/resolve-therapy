@@ -7,7 +7,7 @@
 | React                            | 19.2.4  | UI framework                        |
 | TypeScript                       | 5.9.3   | Type safety                         |
 | Vite                             | 8.0.0   | Build tool and dev server           |
-| Tailwind CSS                     | 4.2.1   | Utility-first styling               |
+| Tailwind CSS                     | 4.2.1   | Utility-first styling + dark mode   |
 | Zustand                          | 5.0.12  | Lightweight state management        |
 | react-router-dom                 | 7.13.1  | Client-side routing                 |
 | i18next                          | 25.8.18 | Internationalization (20 languages) |
@@ -22,6 +22,7 @@
 | Technology                      | Version | Purpose                  |
 | ------------------------------- | ------- | ------------------------ |
 | Node.js                         | 22.x    | Lambda runtime           |
+| TypeScript                      | 5.9.3   | Type safety (compiled)   |
 | @aws-sdk/client-bedrock-runtime | 3.700.0 | AI therapy responses     |
 | @aws-sdk/client-dynamodb        | 3.700.0 | Database operations      |
 | @aws-sdk/lib-dynamodb           | 3.700.0 | DynamoDB document client |
@@ -49,26 +50,40 @@
 | API Gateway    | REST API                                  |
 | Lambda         | Serverless compute (3 functions)          |
 | DynamoDB       | NoSQL database (single-table)             |
-| IAM            | Least-privilege access control            |
+| CloudWatch     | Logging, metrics, alarms, dashboard       |
+| IAM            | Access control                            |
 
 ## Dev Tools
 
-| Tool                        | Version | Purpose                          |
-| --------------------------- | ------- | -------------------------------- |
-| ESLint                      | 9.39.4  | Code linting                     |
-| typescript-eslint           | 8.56.1  | TypeScript ESLint rules          |
-| eslint-plugin-react-hooks   | 7.0.1   | React hooks linting              |
-| eslint-plugin-react-refresh | 0.5.2   | Fast refresh support             |
-| @vitejs/plugin-react        | 6.0.0   | React Vite plugin (Oxc compiler) |
+| Tool                        | Version | Purpose                             |
+| --------------------------- | ------- | ----------------------------------- |
+| ESLint                      | 9.39.4  | Code linting (flat config)          |
+| typescript-eslint           | 8.56.1  | TypeScript ESLint rules             |
+| eslint-plugin-react-hooks   | 7.0.1   | React hooks linting                 |
+| eslint-plugin-react-refresh | 0.5.2   | Fast refresh support                |
+| Prettier                    | 3.8.1   | Code formatting                     |
+| Husky                       | 9.1.7   | Git hooks (pre-commit, commit-msg)  |
+| commitlint                  | 19.8.1  | Conventional commit enforcement     |
+| lint-staged                 | 16.1.0  | Pre-commit linting on staged files  |
+| Jest                        | 30.3.0  | Testing framework (frontend+Lambda) |
+| ts-jest                     | 30.0.0  | TypeScript Jest transformer         |
+| @testing-library/react      | 16.3.0  | React component testing             |
+| @vitejs/plugin-react        | 6.0.0   | React Vite plugin (Oxc compiler)    |
 
-## Missing Dev Tools (To Be Added)
+## CI/CD
 
-- Prettier (code formatting)
-- Husky (git hooks)
-- commitlint (conventional commit enforcement)
-- lint-staged (pre-commit linting)
-- Jest + React Testing Library (unit tests)
-- cfn-lint / cfn_nag (CloudFormation linting)
+| Component      | Purpose                                                   |
+| -------------- | --------------------------------------------------------- |
+| GitHub Actions | CI/CD pipeline                                            |
+| ci.yml         | Reusable workflow: lint, typecheck, test, build           |
+| deploy-dev     | Auto-deploy on push to main (dev environment)             |
+| deploy-prod    | Manual trigger with confirmation (production environment) |
+
+## Still Needed
+
+- cfn-lint / cfn_nag (CloudFormation linting and security scanning)
+- Test coverage reporting (--coverage flags in CI)
+- npm audit in CI (dependency vulnerability scanning)
 
 ## Environment Setup
 
@@ -77,12 +92,14 @@
 - Node.js 22.x
 - AWS CLI configured with appropriate credentials
 - Stripe account with test keys
+- ElevenLabs API key
 
 ### Local Development
 
 ```bash
 # Install dependencies
 npm install
+cd lambda && npm install && cd ..
 
 # Start dev server
 npm run dev
@@ -90,8 +107,14 @@ npm run dev
 # Build for production
 npm run build
 
-# Deploy to AWS
-./deploy.sh
+# Run tests
+npm run test:all
+
+# Deploy to dev
+./deploy.sh dev
+
+# Deploy to prod
+./deploy.sh prod
 ```
 
 ### Environment Variables (Frontend - VITE\_\* prefix)
@@ -106,6 +129,14 @@ npm run build
 - `TABLE_NAME` - DynamoDB table name
 - `ELEVENLABS_API_KEY` - ElevenLabs API key
 - `STRIPE_SECRET_KEY` - Stripe secret key
+- `STRIPE_WEBHOOK_SECRET` - Stripe webhook signing secret
 - `FRONTEND_URL` - CloudFront distribution URL
 - `BEDROCK_MODEL_ID` - Bedrock model identifier
 - `TRANSCRIBE_BUCKET` - S3 bucket for audio files
+
+### GitHub Environments
+
+- **dev**: Auto-deployed on push to main
+- **production**: Manual deployment with confirmation
+- Both have: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `ELEVENLABS_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`
+- Repo-level variables: `SESSION_PRICE_CENTS`, `BEDROCK_MODEL_ID`

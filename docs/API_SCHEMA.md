@@ -8,7 +8,7 @@ https://{api-id}.execute-api.eu-west-2.amazonaws.com/prod
 
 ## Authentication
 
-Currently unauthenticated at API Gateway level. Frontend includes Cognito JWT in `Authorization: Bearer {token}` header, but Lambda handlers don't verify it.
+Currently unauthenticated at API Gateway level. Frontend includes Cognito JWT in `Authorization: Bearer {token}` header, but Lambda handlers don't verify it. **This is a known security gap scheduled for Phase 5.**
 
 ## Endpoints
 
@@ -57,10 +57,17 @@ Get AI therapist response for participant input.
   "sessionId": "uuid",
   "therapistId": "dr-sarah-chen",
   "prompt": "Session focus text",
-  "participants": { "names": ["Alice", "Bob"], "relationship": "Romantic partners", "context": "" },
+  "participants": {
+    "names": ["Alice", "Bob"],
+    "relationship": "Romantic partners",
+    "context": ""
+  },
   "transcript": [
     { "content": "We keep arguing about finances", "isTherapist": false },
-    { "content": "I hear that finances are a source of tension...", "isTherapist": true }
+    {
+      "content": "I hear that finances are a source of tension...",
+      "isTherapist": true
+    }
   ]
 }
 ```
@@ -77,7 +84,7 @@ Get AI therapist response for participant input.
 
 #### POST /sessions/{id}/end
 
-End a session, save transcript, generate summary, deduct minutes.
+End a session, save transcript, generate summary and insights, deduct minutes.
 
 **Request:**
 
@@ -115,7 +122,11 @@ Retrieve session metadata.
   "userId": "cognito-sub",
   "therapistId": "dr-sarah-chen",
   "prompt": "Communication issues",
-  "participants": { "names": ["Alice", "Bob"], "relationship": "Romantic partners", "context": "" },
+  "participants": {
+    "names": ["Alice", "Bob"],
+    "relationship": "Romantic partners",
+    "context": ""
+  },
   "status": "completed",
   "createdAt": "2026-03-19T10:00:00.000Z",
   "endedAt": "2026-03-19T10:45:00.000Z",
@@ -143,6 +154,43 @@ Retrieve session transcript.
 
 ---
 
+#### GET /sessions/{id}/insights
+
+Retrieve AI-generated insights for a completed session.
+
+**Response (200):**
+
+```json
+{
+  "insights": {
+    "communicationScore": 72,
+    "patterns": [
+      "Tendency to interrupt when discussing finances",
+      "Defensive responses to feedback"
+    ],
+    "strengths": [
+      "Active listening during emotional sharing",
+      "Willingness to acknowledge mistakes"
+    ],
+    "actionItems": [
+      "Practice 'I feel' statements instead of 'You always'",
+      "Schedule weekly check-ins about finances"
+    ],
+    "emotionalThemes": ["frustration", "vulnerability", "hope"]
+  }
+}
+```
+
+**Response (200, no insights):**
+
+```json
+{
+  "insights": null
+}
+```
+
+---
+
 #### GET /sessions?userId={userId}
 
 List all sessions for a user (newest first, limit 50).
@@ -158,6 +206,32 @@ List all sessions for a user (newest first, limit 50).
       "status": "completed",
       "createdAt": "...",
       "summary": "..."
+    }
+  ]
+}
+```
+
+---
+
+#### GET /sessions/progress?userId={userId}
+
+Get aggregated progress data for a user.
+
+**Response (200):**
+
+```json
+{
+  "totalSessions": 12,
+  "totalMinutes": 540,
+  "averageCommunicationScore": 68,
+  "favoriteTherapist": "dr-sarah-chen",
+  "sessions": [
+    {
+      "id": "uuid",
+      "therapistId": "dr-sarah-chen",
+      "createdAt": "...",
+      "communicationScore": 72,
+      "minutesUsed": 45
     }
   ]
 }
@@ -261,7 +335,7 @@ Verify Stripe payment and fulfill credits.
 
 #### POST /checkout/webhook
 
-Stripe webhook endpoint for `checkout.session.completed` events.
+Stripe webhook endpoint for `checkout.session.completed` events. Requires `Stripe-Signature` header and `STRIPE_WEBHOOK_SECRET` env var.
 
 **Response (200):**
 
@@ -270,6 +344,8 @@ Stripe webhook endpoint for `checkout.session.completed` events.
   "received": true
 }
 ```
+
+**Errors:** `400` missing signature or verification failed, `500` webhook not configured
 
 ---
 
@@ -302,3 +378,5 @@ All endpoints return:
 - `Access-Control-Allow-Origin: *`
 - `Access-Control-Allow-Methods: GET, POST, OPTIONS`
 - `Access-Control-Allow-Headers: Content-Type, Authorization, ...`
+
+**Note:** Wildcard origin should be restricted to CloudFront domain in Phase 5.

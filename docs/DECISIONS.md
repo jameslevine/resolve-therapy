@@ -27,14 +27,14 @@
 - **Alternatives considered**: Monolith Lambda with Express, separate API per function
 - **Consequences**: Voice function gets 120s timeout while others get 60s. Each function only includes relevant dependencies. Trade-off: code duplication in response/dynamo libs.
 
-## ADR-004: Web Speech API for Frontend STT
+## ADR-004: MediaRecorder + AWS Transcribe for STT
 
 - **Date**: 2026-03
-- **Status**: Accepted (needs review)
-- **Context**: Need real-time speech-to-text during therapy sessions.
-- **Decision**: Use browser's Web Speech API for real-time STT, with AWS Transcribe available as Lambda endpoint.
-- **Alternatives considered**: AWS Transcribe only, Deepgram, Whisper
-- **Consequences**: Zero latency and no API cost for STT, but browser support is inconsistent (best in Chrome). May need to fall back to AWS Transcribe for cross-browser support.
+- **Status**: Accepted (supersedes original Web Speech API approach)
+- **Context**: Web Speech API had inconsistent browser support. Needed cross-browser STT.
+- **Decision**: Use MediaRecorder to capture audio, send to Lambda, transcribe via AWS Transcribe with speaker diarization.
+- **Alternatives considered**: Web Speech API (original, Chrome-only), Deepgram, Whisper
+- **Consequences**: Cross-browser support, speaker identification. Trade-off: 25s polling timeout tight against API Gateway 29s limit. Cost per transcription job.
 
 ## ADR-005: ElevenLabs for Text-to-Speech
 
@@ -67,16 +67,34 @@
 
 - **Date**: 2026-03
 - **Status**: Accepted
-- **Context**: Need global state for auth and credits.
-- **Decision**: Use Zustand with two stores (auth, credits).
+- **Context**: Need global state for auth, credits, and theme.
+- **Decision**: Use Zustand with three stores (auth, credits, theme).
 - **Alternatives considered**: Redux Toolkit, React Context, Jotai
-- **Consequences**: Minimal boilerplate, simple API, small bundle size. Two small stores vs one large store.
+- **Consequences**: Minimal boilerplate, simple API, small bundle size. Three small focused stores.
 
-## ADR-009: Plain JavaScript Lambda Functions
+## ADR-009: Lambda TypeScript Migration
 
-- **Date**: 2026-03
-- **Status**: Accepted (needs review)
-- **Context**: Rapid MVP development needed for backend.
-- **Decision**: Write Lambda handlers in plain JavaScript (CommonJS) for fast iteration.
-- **Alternatives considered**: TypeScript with build step, Express monolith Lambda
-- **Consequences**: No type safety on backend, no build step needed, faster cold starts. Should migrate to TypeScript for maintainability.
+- **Date**: 2026-03-19
+- **Status**: Accepted (supersedes original plain JS approach)
+- **Context**: Plain JS Lambda handlers lacked type safety, making refactoring risky.
+- **Decision**: Migrated all Lambda handlers and lib files to TypeScript with strict mode. Build step via tsc to dist/.
+- **Alternatives considered**: Keep plain JS with JSDoc types, gradual migration
+- **Consequences**: Full type safety, better IDE support, catch errors at compile time. Trade-off: build step required before deployment, slightly slower cold starts.
+
+## ADR-010: GitHub Actions CI/CD with Environment Separation
+
+- **Date**: 2026-03-20
+- **Status**: Accepted
+- **Context**: Need automated testing and deployment with separate dev and prod environments.
+- **Decision**: Three workflow files: ci.yml (reusable), deploy-dev.yml (auto on push to main), deploy-prod.yml (manual trigger). AWS access keys per environment.
+- **Alternatives considered**: AWS CodePipeline, OIDC role-based auth, single workflow with matrix
+- **Consequences**: Full CI (lint, typecheck, test, build) before deploy. Separate CloudFormation stacks, DynamoDB tables, S3 buckets per environment. Known issue: API Gateway stage name hardcoded to "prod" in both.
+
+## ADR-011: Dark Mode via Tailwind Class Strategy
+
+- **Date**: 2026-03-20
+- **Status**: Accepted
+- **Context**: Users requested dark mode support.
+- **Decision**: Use Tailwind v4 `@custom-variant dark` with class-based toggling on `document.documentElement`. Zustand theme store persists to localStorage and respects system preference.
+- **Alternatives considered**: CSS media query only (no manual toggle), separate stylesheet, CSS variables only
+- **Consequences**: Users can choose light/dark/system. CSS overrides in index.css for backgrounds, borders, inputs. All component dark classes use Tailwind utilities.
