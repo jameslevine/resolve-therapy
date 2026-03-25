@@ -69,7 +69,7 @@ describe("voice handler", () => {
       });
 
       const fetchUrl = mockFetch.mock.calls[0][0];
-      expect(fetchUrl).toContain("TX3LPaxmHKxFdv7VOQHJ");
+      expect(fetchUrl).toContain("nPczCjzI2devNBz1zQrb");
     });
 
     it("uses default voice for unknown therapist", async () => {

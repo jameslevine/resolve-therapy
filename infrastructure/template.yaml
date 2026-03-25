@@ -307,7 +307,7 @@ Resources:
                 Action:
                   - transcribe:StartTranscriptionJob
                   - transcribe:GetTranscriptionJob
-                Resource: !Sub "arn:aws:transcribe:eu-west-2:${AWS::AccountId}:transcription-job/resolve-*"
+                Resource: !Sub "arn:aws:transcribe:eu-west-2:${AWS::AccountId}:transcription-job/transcribe-*"
 
   # ============================================================
   # Lambda Dead-Letter Queues
