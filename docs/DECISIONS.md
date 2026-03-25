@@ -88,7 +88,7 @@
 - **Context**: Need automated testing and deployment with separate dev and prod environments.
 - **Decision**: Three workflow files: ci.yml (reusable), deploy-dev.yml (auto on push to main), deploy-prod.yml (manual trigger). AWS access keys per environment.
 - **Alternatives considered**: AWS CodePipeline, OIDC role-based auth, single workflow with matrix
-- **Consequences**: Full CI (lint, typecheck, test, build) before deploy. Separate CloudFormation stacks, DynamoDB tables, S3 buckets per environment. Known issue: API Gateway stage name hardcoded to "prod" in both.
+- **Consequences**: Full CI (lint, typecheck, test, build) before deploy. Separate CloudFormation stacks, DynamoDB tables, S3 buckets per environment. API Gateway stage name parameterized via Environment.
 
 ## ADR-011: Dark Mode via Tailwind Class Strategy
 

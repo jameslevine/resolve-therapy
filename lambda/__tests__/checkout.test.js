@@ -217,6 +217,51 @@ describe("checkout handler", () => {
       expect(JSON.parse(result.body)).toEqual({ received: true });
     });
 
+    it("handles idempotent double-fulfill (ConditionalCheckFailedException)", async () => {
+      const conditionalError = new Error("The conditional request failed");
+      conditionalError.name = "ConditionalCheckFailedException";
+
+      mockSend.mockRejectedValueOnce(conditionalError); // order already fulfilled
+
+      const result = await handler({
+        httpMethod: "POST",
+        path: "/checkout/webhook",
+        headers: { "Stripe-Signature": "t=123,v1=abc" },
+        body: JSON.stringify({
+          type: "checkout.session.completed",
+          data: {
+            object: {
+              payment_status: "paid",
+              metadata: {
+                orderId: "order-already-done",
+                userId: "user-123",
+                credits: "60",
+              },
+            },
+          },
+        }),
+      });
+
+      expect(result.statusCode).toBe(200);
+      // Should only have tried the order update, not the credit add
+      expect(mockSend).toHaveBeenCalledTimes(1);
+    });
+
+    it("ignores non-checkout events", async () => {
+      const result = await handler({
+        httpMethod: "POST",
+        path: "/checkout/webhook",
+        headers: { "Stripe-Signature": "t=123,v1=abc" },
+        body: JSON.stringify({
+          type: "payment_intent.succeeded",
+          data: { object: {} },
+        }),
+      });
+
+      expect(result.statusCode).toBe(200);
+      expect(mockSend).not.toHaveBeenCalled();
+    });
+
     it("returns 400 when Stripe-Signature header is missing", async () => {
       const result = await handler({
         httpMethod: "POST",

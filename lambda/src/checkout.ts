@@ -5,6 +5,7 @@ import { ddb, TABLE, PutCommand, GetCommand, UpdateCommand } from "./lib/dynamo"
 import { ok, error, options } from "./lib/response";
 import { loggerFromEvent, Logger } from "./lib/logger";
 import { getAuthUserId } from "./lib/auth";
+import { Keys } from "./lib/keys";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -70,8 +71,8 @@ async function handleBuyCredits(
     new PutCommand({
       TableName: TABLE,
       Item: {
-        PK: `ORDER#${orderId}`,
-        SK: "META",
+        PK: Keys.order(orderId),
+        SK: Keys.META,
         id: orderId,
         userId,
         packageId,
@@ -147,7 +148,7 @@ async function fulfillCredits(metadata: Record<string, string>): Promise<void> {
     await ddb.send(
       new UpdateCommand({
         TableName: TABLE,
-        Key: { PK: `ORDER#${orderId}`, SK: "META" },
+        Key: { PK: Keys.order(orderId), SK: Keys.META },
         UpdateExpression: "SET #status = :status, fulfilledAt = :now",
         ConditionExpression: "#status <> :status",
         ExpressionAttributeNames: { "#status": "status" },
@@ -166,7 +167,7 @@ async function fulfillCredits(metadata: Record<string, string>): Promise<void> {
     await ddb.send(
       new UpdateCommand({
         TableName: TABLE,
-        Key: { PK: `USER#${userId}`, SK: "CREDITS" },
+        Key: { PK: Keys.user(userId), SK: Keys.CREDITS },
         UpdateExpression:
           "SET balance = if_not_exists(balance, :zero) + :credits, updatedAt = :now",
         ExpressionAttributeValues: {
@@ -191,7 +192,7 @@ async function handleVerifySession(event: APIGatewayProxyEvent): Promise<APIGate
     const order = await ddb.send(
       new GetCommand({
         TableName: TABLE,
-        Key: { PK: `ORDER#${session.metadata.orderId}`, SK: "META" },
+        Key: { PK: Keys.order(session.metadata.orderId), SK: Keys.META },
       }),
     );
     if (order.Item && order.Item.status !== "fulfilled") {
@@ -204,7 +205,7 @@ async function handleVerifySession(event: APIGatewayProxyEvent): Promise<APIGate
     const result = await ddb.send(
       new GetCommand({
         TableName: TABLE,
-        Key: { PK: `USER#${userId}`, SK: "CREDITS" },
+        Key: { PK: Keys.user(userId), SK: Keys.CREDITS },
       }),
     );
     return ok({ balance: result.Item?.balance || 0, fulfilled: true });
@@ -217,7 +218,7 @@ async function handleGetBalance(userId: string): Promise<APIGatewayProxyResult> 
   const result = await ddb.send(
     new GetCommand({
       TableName: TABLE,
-      Key: { PK: `USER#${userId}`, SK: "CREDITS" },
+      Key: { PK: Keys.user(userId), SK: Keys.CREDITS },
     }),
   );
 

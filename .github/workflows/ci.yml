@@ -40,10 +40,20 @@ jobs:
         run: npx prettier --check .
 
       - name: Frontend tests
-        run: npm test -- --ci
+        run: npm test -- --ci --coverage
 
       - name: Lambda tests
-        run: cd lambda && npm test -- --ci
+        run: cd lambda && npm test -- --ci --coverage
+
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            coverage/
+            lambda/coverage/
+          retention-days: 7
 
   build:
     name: Build

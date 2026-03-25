@@ -99,16 +99,16 @@ TogetherTherapy is an AI-powered couples therapy platform providing 24/7 accessi
 
 | Feature                                                 | Priority | Status      |
 | ------------------------------------------------------- | -------- | ----------- |
-| Fix useCallback missing deps (SessionInterface.tsx)     | P0       | Not Started |
-| Remove App.css template cruft                           | P1       | Not Started |
-| Update ADR-004, ADR-009 status (superseded)             | P1       | Not Started |
-| Expand frontend test coverage (pages, components)       | P1       | Not Started |
-| Add auth/concurrency/idempotency tests for Lambda       | P1       | Not Started |
-| Add test coverage reporting to CI                       | P2       | Not Started |
+| Fix useCallback missing deps (SessionInterface.tsx)     | P0       | Complete    |
+| Remove App.css template cruft                           | P1       | Complete    |
+| Update ADR-010 known issue (stage name fixed)           | P1       | Complete    |
+| Add auth/ownership/idempotency tests for Lambda         | P1       | Complete    |
+| Add test coverage reporting to CI                       | P2       | Complete    |
+| Centralize therapist data (single source of truth)      | P2       | Complete    |
+| Extract DynamoDB key patterns to constants              | P2       | Complete    |
+| Consolidate Bedrock model ID references                 | P3       | Complete    |
 | Extract large components (SessionInterface, NewSession) | P2       | Not Started |
-| Centralize therapist data (single source of truth)      | P2       | Not Started |
-| Extract DynamoDB key patterns to constants              | P2       | Not Started |
-| Consolidate Bedrock model ID references                 | P3       | Not Started |
+| Expand frontend test coverage (pages, components)       | P1       | Not Started |
 
 ## Phase 8: Features (Next)
 
@@ -134,3 +134,5 @@ TogetherTherapy is an AI-powered couples therapy platform providing 24/7 accessi
 | 2026-03-20 | Environment-based CFN naming (dev/prod stack isolation)        |
 | 2026-03-25 | Full codebase review and gap analysis                          |
 | 2026-03-25 | Phase 5: Cognito auth, ownership validation, encryption, CORS  |
+| 2026-03-25 | Phase 6: Access logging, DLQs, alarms, cfn-lint, consolidation |
+| 2026-03-25 | Phase 7: Code quality, centralized data, tests (93 total)      |

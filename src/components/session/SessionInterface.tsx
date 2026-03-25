@@ -43,6 +43,9 @@ export default function SessionInterface({
   const responseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTTSPlayingRef = useRef(false);
   const errorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const voiceStopRef = useRef<() => void>(() => {});
+  const voicePauseRef = useRef<() => void>(() => {});
+  const voiceResumeRef = useRef<() => void>(() => {});
 
   const showError = useCallback((message: string) => {
     setSessionError(message);
@@ -93,7 +96,7 @@ export default function SessionInterface({
 
       try {
         isTTSPlayingRef.current = true;
-        voiceRecorder.pause();
+        voicePauseRef.current();
         setIsSpeaking(true);
 
         const response = await fetch(audioUrl);
@@ -108,7 +111,7 @@ export default function SessionInterface({
           source.onended = () => {
             setIsSpeaking(false);
             isTTSPlayingRef.current = false;
-            voiceRecorder.resume();
+            voiceResumeRef.current();
             resolve();
           };
           source.start(0);
@@ -116,10 +119,9 @@ export default function SessionInterface({
       } catch {
         setIsSpeaking(false);
         isTTSPlayingRef.current = false;
-        voiceRecorder.resume();
+        voiceResumeRef.current();
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [isMuted],
   );
 
@@ -199,6 +201,10 @@ export default function SessionInterface({
     silenceDuration: 1500,
     volumeThreshold: 15,
   });
+  const { start: voiceStart, stop: voiceStop } = voiceRecorder;
+  voiceStopRef.current = voiceStop;
+  voicePauseRef.current = voiceRecorder.pause;
+  voiceResumeRef.current = voiceRecorder.resume;
 
   const handleStart = useCallback(async () => {
     setStarted(true);
@@ -229,20 +235,20 @@ export default function SessionInterface({
       addTranscriptEntry(greeting, true);
     }
 
-    await voiceRecorder.start();
-  }, [therapist, sessionPrompt, participants, addTranscriptEntry, playAudio, voiceRecorder]);
+    await voiceStart();
+  }, [therapist, sessionPrompt, participants, addTranscriptEntry, playAudio, voiceStart]);
 
   const toggleMic = useCallback(() => {
     if (isMicOn) {
-      voiceRecorder.stop();
+      voiceStop();
     } else {
-      voiceRecorder.start();
+      voiceStart();
     }
     setIsMicOn((prev) => !prev);
-  }, [isMicOn, voiceRecorder]);
+  }, [isMicOn, voiceStop, voiceStart]);
 
   const handleEndSession = useCallback(async () => {
-    voiceRecorder.stop();
+    voiceStop();
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     setShowEndModal(false);
 
@@ -262,16 +268,15 @@ export default function SessionInterface({
     }
 
     window.location.href = "/dashboard";
-  }, [voiceRecorder, sessionId]);
+  }, [voiceStop, sessionId]);
 
   useEffect(() => {
     return () => {
-      voiceRecorder.stop();
+      voiceStopRef.current();
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
       if (errorTimeoutRef.current) clearTimeout(errorTimeoutRef.current);
       if (audioContextRef.current) audioContextRef.current.close();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // --- Ready to begin ---

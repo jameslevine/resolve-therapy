@@ -287,6 +287,89 @@ describe("sessions handler", () => {
       expect(result.statusCode).toBe(200);
       expect(JSON.parse(result.body).entries).toEqual([]);
     });
+
+    it("returns 403 when transcript belongs to another user", async () => {
+      mockSend.mockResolvedValueOnce({
+        Item: { userId: "other-user" },
+      });
+
+      const result = await handler({
+        httpMethod: "GET",
+        path: "/sessions/session-1/transcript",
+        ...authContext(),
+      });
+
+      expect(result.statusCode).toBe(403);
+    });
+
+    it("returns 404 when session does not exist for transcript", async () => {
+      mockSend.mockResolvedValueOnce({ Item: null });
+
+      const result = await handler({
+        httpMethod: "GET",
+        path: "/sessions/session-1/transcript",
+        ...authContext(),
+      });
+
+      expect(result.statusCode).toBe(404);
+    });
+  });
+
+  describe("GET /sessions/{id}/insights", () => {
+    it("returns insights for owned session", async () => {
+      mockSend
+        .mockResolvedValueOnce({ Item: { userId: "user-123" } }) // session META
+        .mockResolvedValueOnce({
+          Item: {
+            PK: "SESSION#session-1",
+            SK: "INSIGHTS",
+            communicationScore: 7,
+            patterns: ["avoidance"],
+          },
+        });
+
+      const result = await handler({
+        httpMethod: "GET",
+        path: "/sessions/session-1/insights",
+        ...authContext(),
+      });
+
+      expect(result.statusCode).toBe(200);
+      const body = JSON.parse(result.body);
+      expect(body.insights.communicationScore).toBe(7);
+      // PK and SK should be stripped from response
+      expect(body.insights.PK).toBeUndefined();
+      expect(body.insights.SK).toBeUndefined();
+    });
+
+    it("returns 403 when insights belong to another user", async () => {
+      mockSend.mockResolvedValueOnce({
+        Item: { userId: "other-user" },
+      });
+
+      const result = await handler({
+        httpMethod: "GET",
+        path: "/sessions/session-1/insights",
+        ...authContext(),
+      });
+
+      expect(result.statusCode).toBe(403);
+    });
+
+    it("returns null insights when none exist", async () => {
+      mockSend
+        .mockResolvedValueOnce({ Item: { userId: "user-123" } })
+        .mockResolvedValueOnce({ Item: null });
+
+      const result = await handler({
+        httpMethod: "GET",
+        path: "/sessions/session-1/insights",
+        ...authContext(),
+      });
+
+      expect(result.statusCode).toBe(200);
+      expect(JSON.parse(result.body).insights).toBeNull();
+    });
   });
 
   describe("GET /sessions (list)", () => {

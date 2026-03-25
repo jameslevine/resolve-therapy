@@ -8,6 +8,7 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { ok, error, options } from "./lib/response";
 import { loggerFromEvent } from "./lib/logger";
 import type { Logger } from "./lib/logger";
+import { getVoiceId } from "./lib/therapists";
 
 const REGION: string = process.env.AWS_REGION || "eu-west-2";
 const BUCKET: string =
@@ -40,36 +41,7 @@ async function handleSpeak(event: APIGatewayProxyEvent): Promise<APIGatewayProxy
   };
   if (!text) return error(400, "text is required");
 
-  const VOICE_MAP: Record<string, string> = {
-    "dr-sarah-chen": "EXAVITQu4vr4xnSDxMaL",
-    "dr-marcus-wright": "TX3LPaxmHKxFdv7VOQHJ",
-    "dr-elena-vasquez": "XB0fDUnXU5powFXDhCwa",
-    "dr-james-okonkwo": "pNInz6obpgDQGcFmaJgB",
-    "dr-mei-tanaka": "jBpfuIE2acCO8z3wKNLl",
-    "dr-rachel-abrams": "EXAVITQu4vr4xnSDxMaL",
-    "dr-david-kim": "TX3LPaxmHKxFdv7VOQHJ",
-    "dr-amara-osei": "XB0fDUnXU5powFXDhCwa",
-    "dr-thomas-brennan": "pNInz6obpgDQGcFmaJgB",
-    "dr-sofia-petrov": "jBpfuIE2acCO8z3wKNLl",
-    "dr-nathan-cole": "TX3LPaxmHKxFdv7VOQHJ",
-    "dr-aisha-rahman": "EXAVITQu4vr4xnSDxMaL",
-    "dr-carlos-mendoza": "pNInz6obpgDQGcFmaJgB",
-    "dr-hannah-liu": "XB0fDUnXU5powFXDhCwa",
-    "dr-omar-hassan": "TX3LPaxmHKxFdv7VOQHJ",
-    "dr-lily-chen-wu": "jBpfuIE2acCO8z3wKNLl",
-    "dr-ryan-murphy": "pNInz6obpgDQGcFmaJgB",
-    "dr-priya-sharma": "EXAVITQu4vr4xnSDxMaL",
-    "dr-michael-torres": "TX3LPaxmHKxFdv7VOQHJ",
-    "dr-emma-williams": "XB0fDUnXU5powFXDhCwa",
-    "dr-alex-novak": "pNInz6obpgDQGcFmaJgB",
-    "dr-grace-adeyemi": "jBpfuIE2acCO8z3wKNLl",
-    "dr-daniel-park": "TX3LPaxmHKxFdv7VOQHJ",
-    "dr-nina-kowalski": "EXAVITQu4vr4xnSDxMaL",
-    "dr-jay-robinson": "pNInz6obpgDQGcFmaJgB",
-    "dr-fatima-al-rashid": "XB0fDUnXU5powFXDhCwa",
-  };
-
-  const voiceId: string = (therapistId && VOICE_MAP[therapistId]) || "EXAVITQu4vr4xnSDxMaL";
+  const voiceId: string = getVoiceId(therapistId || "");
 
   const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`, {
     method: "POST",
