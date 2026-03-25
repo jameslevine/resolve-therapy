@@ -650,6 +650,7 @@ Resources:
   ApiDeployment:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
+      - CognitoAuthorizer
       - CheckoutOptionsMethod
       - CheckoutProxyAnyMethod
       - CheckoutProxyOptionsMethod
@@ -661,7 +662,7 @@ Resources:
       - VoiceProxyOptionsMethod
     Properties:
       RestApiId: !Ref ApiGateway
-      Description: "Deployment with checkout, sessions, and voice routes"
+      Description: "Deployment with Cognito auth on sessions and voice routes"
 
   # ============================================================
   # API Gateway Access Log Group
