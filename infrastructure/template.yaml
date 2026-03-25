@@ -63,6 +63,8 @@ Resources:
         - Name: name
           Required: true
           Mutable: true
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
       AccountRecoverySetting:
         RecoveryMechanisms:
           - Name: verified_email
