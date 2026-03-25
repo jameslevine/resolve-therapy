@@ -142,6 +142,31 @@ Resources:
         RestrictPublicBuckets: true
 
   # ============================================================
+  # S3 Bucket for Access Logs (CloudFront)
+  # ============================================================
+  LogsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${FrontendBucketName}-logs"
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireLogs
+            Status: Enabled
+            ExpirationInDays: 90
+
+  # ============================================================
   # CloudFront Origin Access Control
   # ============================================================
   CloudFrontOAC:
@@ -162,6 +187,10 @@ Resources:
       DistributionConfig:
         Enabled: true
         DefaultRootObject: index.html
+        Logging:
+          Bucket: !GetAtt LogsBucket.DomainName
+          IncludeCookies: false
+          Prefix: cloudfront/
         Origins:
           - Id: S3Origin
             DomainName: !GetAtt FrontendBucket.RegionalDomainName
@@ -260,6 +289,14 @@ Resources:
                   - s3:GetObject
                   - s3:DeleteObject
                 Resource: !Sub "arn:aws:s3:::${TranscribeBucket}/transcribe-audio/*"
+        - PolicyName: SQSDLQAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                Resource: !GetAtt LambdaDLQ.Arn
         - PolicyName: TranscribeAccess
           PolicyDocument:
             Version: "2012-10-17"
@@ -269,6 +306,16 @@ Resources:
                   - transcribe:StartTranscriptionJob
                   - transcribe:GetTranscriptionJob
                 Resource: !Sub "arn:aws:transcribe:eu-west-2:${AWS::AccountId}:transcription-job/resolve-*"
+
+  # ============================================================
+  # Lambda Dead-Letter Queues
+  # ============================================================
+  LambdaDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "resolve-therapy-${Environment}-lambda-dlq"
+      MessageRetentionPeriod: 1209600
+      SqsManagedSseEnabled: true
 
   # ============================================================
   # Lambda Functions
@@ -282,6 +329,8 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       MemorySize: 256
       Timeout: 60
+      DeadLetterConfig:
+        TargetArn: !GetAtt LambdaDLQ.Arn
       Environment:
         Variables:
           TABLE_NAME: !Ref TableName
@@ -306,6 +355,8 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       MemorySize: 256
       Timeout: 60
+      DeadLetterConfig:
+        TargetArn: !GetAtt LambdaDLQ.Arn
       Environment:
         Variables:
           TABLE_NAME: !Ref TableName
@@ -330,6 +381,8 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       MemorySize: 256
       Timeout: 120
+      DeadLetterConfig:
+        TargetArn: !GetAtt LambdaDLQ.Arn
       Environment:
         Variables:
           TABLE_NAME: !Ref TableName
@@ -608,12 +661,53 @@ Resources:
       RestApiId: !Ref ApiGateway
       Description: "Deployment with checkout, sessions, and voice routes"
 
+  # ============================================================
+  # API Gateway Access Log Group
+  # ============================================================
+  ApiGatewayAccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/apigateway/resolve-therapy-${Environment}-access"
+      RetentionInDays: 30
+
+  # ============================================================
+  # IAM Role for API Gateway CloudWatch Logging
+  # ============================================================
+  ApiGatewayLoggingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "resolve-therapy-${Environment}-apigw-logging-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+
+  ApiGatewayAccount:
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn: !GetAtt ApiGatewayLoggingRole.Arn
+
   ApiStage:
     Type: AWS::ApiGateway::Stage
+    DependsOn: ApiGatewayAccount
     Properties:
       RestApiId: !Ref ApiGateway
       DeploymentId: !Ref ApiDeployment
       StageName: !Ref Environment
+      AccessLogSetting:
+        DestinationArn: !GetAtt ApiGatewayAccessLogGroup.Arn
+        Format: '{"requestId":"$context.requestId","ip":"$context.identity.sourceIp","caller":"$context.identity.caller","user":"$context.identity.user","requestTime":"$context.requestTime","httpMethod":"$context.httpMethod","resourcePath":"$context.resourcePath","status":"$context.status","protocol":"$context.protocol","responseLength":"$context.responseLength","integrationLatency":"$context.integrationLatency"}'
+      MethodSettings:
+        - HttpMethod: "*"
+          ResourcePath: "/*"
+          LoggingLevel: INFO
+          DataTraceEnabled: false
+          MetricsEnabled: true
 
   # ============================================================
   # Lambda Permissions for API Gateway
@@ -715,6 +809,91 @@ Resources:
       Period: 300
       EvaluationPeriods: 1
       Threshold: 10
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  SessionsDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "resolve-therapy-${Environment}-sessions-high-duration"
+      AlarmDescription: Sessions Lambda p99 duration exceeds 30s
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref SessionsFunction
+      ExtendedStatistic: p99
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 30000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  VoiceDurationAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "resolve-therapy-${Environment}-voice-high-duration"
+      AlarmDescription: Voice Lambda p99 duration exceeds 60s
+      Namespace: AWS/Lambda
+      MetricName: Duration
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref VoiceFunction
+      ExtendedStatistic: p99
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 60000
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  LambdaThrottleAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "resolve-therapy-${Environment}-lambda-throttles"
+      AlarmDescription: Any Lambda throttling detected
+      Namespace: AWS/Lambda
+      MetricName: Throttles
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref SessionsFunction
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  DLQMessagesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "resolve-therapy-${Environment}-dlq-messages"
+      AlarmDescription: Messages appearing in Lambda DLQ
+      Namespace: AWS/SQS
+      MetricName: ApproximateNumberOfMessagesVisible
+      Dimensions:
+        - Name: QueueName
+          Value: !GetAtt LambdaDLQ.QueueName
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  ApiGateway5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "resolve-therapy-${Environment}-api-5xx"
+      AlarmDescription: API Gateway 5xx errors exceed 5 in 5 minutes
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: ApiName
+          Value: !Sub "resolve-therapy-${Environment}-api"
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 

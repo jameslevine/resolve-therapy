@@ -21,6 +21,12 @@ jobs:
       - name: Install Lambda dependencies
         run: cd lambda && npm ci
 
+      - name: Install cfn-lint
+        run: pip install cfn-lint
+
+      - name: CloudFormation lint
+        run: cfn-lint infrastructure/template.yaml
+
       - name: ESLint
         run: npx eslint .
 

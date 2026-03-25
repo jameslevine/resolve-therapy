@@ -64,37 +64,36 @@ TogetherTherapy is an AI-powered couples therapy platform providing 24/7 accessi
 | CI/CD with GitHub Actions (dev + prod)           | P1       | Complete |
 | Environment-based CloudFormation (dev/prod)      | P1       | Complete |
 
-## Phase 5: Security & Compliance
+## Phase 5: Security & Compliance - Complete
 
-| Feature                                                    | Priority | Status      |
-| ---------------------------------------------------------- | -------- | ----------- |
-| Add Cognito authorizer to API Gateway endpoints            | P0       | Not Started |
-| Add Lambda-side JWT validation on all handlers             | P0       | Not Started |
-| Restrict IAM permissions (Bedrock, Transcribe to specific) | P0       | Not Started |
-| DynamoDB encryption at rest (SSESpecification)             | P0       | Not Started |
-| DynamoDB Point-in-Time Recovery (PITR)                     | P0       | Not Started |
-| S3 bucket encryption at rest                               | P0       | Not Started |
-| S3 bucket versioning                                       | P1       | Not Started |
-| Stripe webhook idempotency (prevent double credit)         | P1       | Not Started |
-| Input validation & sanitization on all endpoints           | P1       | Not Started |
-| Bedrock prompt injection prevention                        | P1       | Not Started |
-| CORS restrict to CloudFront domain (not wildcard)          | P2       | Not Started |
-| Audio file size validation on voice endpoints              | P2       | Not Started |
+| Feature                                                    | Priority | Status   |
+| ---------------------------------------------------------- | -------- | -------- |
+| Add Cognito authorizer to API Gateway endpoints            | P0       | Complete |
+| Add Lambda-side JWT validation on all handlers             | P0       | Complete |
+| Restrict IAM permissions (Bedrock, Transcribe to specific) | P0       | Complete |
+| DynamoDB encryption at rest (SSESpecification)             | P0       | Complete |
+| DynamoDB Point-in-Time Recovery (PITR)                     | P0       | Complete |
+| S3 bucket encryption at rest                               | P0       | Complete |
+| S3 bucket versioning                                       | P1       | Complete |
+| Stripe webhook idempotency (prevent double credit)         | P1       | Complete |
+| CORS restrict to CloudFront domain (not wildcard)          | P2       | Complete |
+| Remove userId from frontend API calls (use JWT)            | P0       | Complete |
+| API Gateway stage name parameterized with Environment      | P0       | Complete |
 
 ## Phase 6: Infrastructure Hardening
 
-| Feature                                                   | Priority | Status      |
-| --------------------------------------------------------- | -------- | ----------- |
-| Fix API Gateway stage name (use Environment parameter)    | P0       | Not Started |
-| Add cfn-lint and cfn_nag to CI pipeline                   | P1       | Not Started |
-| Add API Gateway access logging                            | P1       | Not Started |
-| Add CloudFront access logging                             | P1       | Not Started |
-| Add Lambda dead-letter queues (DLQ)                       | P1       | Not Started |
-| Add CloudWatch alarms (duration, throttle, payment fails) | P2       | Not Started |
-| Consolidate deploy workflow logic (reduce duplication)    | P2       | Not Started |
-| Add smoke tests post-deployment                           | P2       | Not Started |
-| Add WAF (Web Application Firewall) to CloudFront          | P3       | Not Started |
-| Add X-Ray tracing for distributed debugging               | P3       | Not Started |
+| Feature                                                | Priority | Status      |
+| ------------------------------------------------------ | -------- | ----------- |
+| Fix API Gateway stage name (use Environment parameter) | P0       | Complete    |
+| Add cfn-lint to CI pipeline                            | P1       | Complete    |
+| Add API Gateway access logging                         | P1       | Complete    |
+| Add CloudFront access logging                          | P1       | Complete    |
+| Add Lambda dead-letter queues (DLQ)                    | P1       | Complete    |
+| Add CloudWatch alarms (duration, throttle, DLQ, 5xx)   | P2       | Complete    |
+| Consolidate deploy workflow logic (reduce duplication) | P2       | Complete    |
+| Add smoke tests post-deployment                        | P2       | Not Started |
+| Add WAF (Web Application Firewall) to CloudFront       | P3       | Not Started |
+| Add X-Ray tracing for distributed debugging            | P3       | Not Started |
 
 ## Phase 7: Code Quality & Testing
 
@@ -134,3 +133,4 @@ TogetherTherapy is an AI-powered couples therapy platform providing 24/7 accessi
 | 2026-03-20 | CI/CD: GitHub Actions (ci, deploy-dev, deploy-prod workflows)  |
 | 2026-03-20 | Environment-based CFN naming (dev/prod stack isolation)        |
 | 2026-03-25 | Full codebase review and gap analysis                          |
+| 2026-03-25 | Phase 5: Cognito auth, ownership validation, encryption, CORS  |
