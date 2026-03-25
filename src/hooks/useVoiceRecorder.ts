@@ -4,7 +4,6 @@ import { apiFetch } from "@/lib/api";
 interface UseVoiceRecorderOptions {
   onTranscript: (text: string) => void;
   onInterim?: (text: string) => void;
-  silenceThreshold?: number;
   silenceDuration?: number;
   volumeThreshold?: number;
 }
@@ -18,15 +17,46 @@ interface UseVoiceRecorderReturn {
   isTranscribing: boolean;
 }
 
+// Check for Web Speech API support
+interface SpeechRecognitionEvent {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionInstance extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: { error: string }) => void) | null;
+  onend: (() => void) | null;
+}
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const w = window as any;
+const SpeechRecognition: SpeechRecognitionConstructor | undefined =
+  w.SpeechRecognition || w.webkitSpeechRecognition;
+
 export function useVoiceRecorder({
   onTranscript,
   onInterim,
   silenceDuration = 1500,
-  volumeThreshold = 15,
+  volumeThreshold = 5,
 }: UseVoiceRecorderOptions): UseVoiceRecorderReturn {
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
 
+  const activeRef = useRef(false);
+  const pausedRef = useRef(false);
+
+  // Web Speech API refs
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
+
+  // Fallback refs (MediaRecorder + AWS Transcribe)
   const streamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -35,8 +65,111 @@ export function useVoiceRecorder({
   const chunksRef = useRef<Blob[]>([]);
   const isSpeakingRef = useRef(false);
   const silenceStartRef = useRef<number | null>(null);
-  const pausedRef = useRef(false);
-  const activeRef = useRef(false);
+
+  // ---- Web Speech API approach (fast, real-time) ----
+
+  const startWebSpeech = useCallback(async () => {
+    const recognition = new SpeechRecognition!();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-GB";
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      if (pausedRef.current) return;
+
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result.isFinal) {
+          const text = result[0].transcript.trim();
+          if (text) {
+            onTranscript(text);
+            onInterim?.("");
+          }
+        } else {
+          interim += result[0].transcript;
+        }
+      }
+      if (interim) {
+        onInterim?.(interim);
+      }
+    };
+
+    recognition.onerror = (event) => {
+      if (event.error === "no-speech" || event.error === "aborted") return;
+      console.error("Speech recognition error:", event.error);
+    };
+
+    recognition.onend = () => {
+      // Auto-restart if still active (browser stops after silence)
+      if (activeRef.current && !pausedRef.current) {
+        try {
+          recognition.start();
+        } catch {
+          // Already started
+        }
+      }
+    };
+
+    recognitionRef.current = recognition;
+    activeRef.current = true;
+    pausedRef.current = false;
+    setIsRecording(true);
+
+    // Request mic permission (needed for the recording indicator)
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    streamRef.current = stream;
+
+    recognition.start();
+  }, [onTranscript, onInterim]);
+
+  const stopWebSpeech = useCallback(() => {
+    activeRef.current = false;
+    pausedRef.current = false;
+
+    if (recognitionRef.current) {
+      recognitionRef.current.onend = null;
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+
+    setIsRecording(false);
+  }, []);
+
+  const pauseWebSpeech = useCallback(() => {
+    pausedRef.current = true;
+    if (recognitionRef.current) {
+      recognitionRef.current.onend = null;
+      recognitionRef.current.stop();
+    }
+  }, []);
+
+  const resumeWebSpeech = useCallback(() => {
+    pausedRef.current = false;
+    if (recognitionRef.current && activeRef.current) {
+      recognitionRef.current.onend = () => {
+        if (activeRef.current && !pausedRef.current) {
+          try {
+            recognitionRef.current?.start();
+          } catch {
+            // Already started
+          }
+        }
+      };
+      try {
+        recognitionRef.current.start();
+      } catch {
+        // Already started
+      }
+    }
+  }, []);
+
+  // ---- Fallback: MediaRecorder + AWS Transcribe (for unsupported browsers) ----
 
   const getMimeType = useCallback((): string => {
     const types = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/mp4"];
@@ -55,7 +188,7 @@ export function useVoiceRecorder({
 
   const sendAudioForTranscription = useCallback(
     async (blob: Blob, format: string) => {
-      if (blob.size < 1000) return; // Skip tiny clips (noise/clicks)
+      if (blob.size < 1000) return;
 
       setIsTranscribing(true);
       onInterim?.("...");
@@ -114,7 +247,7 @@ export function useVoiceRecorder({
       chunksRef.current = [];
     };
 
-    recorder.start(100); // Collect data every 100ms
+    recorder.start(100);
     mediaRecorderRef.current = recorder;
   }, [getMimeType, getFormatFromMime, sendAudioForTranscription]);
 
@@ -133,13 +266,9 @@ export function useVoiceRecorder({
     return sum / dataArray.length;
   }, []);
 
-  const start = useCallback(async () => {
+  const startFallback = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        sampleRate: 16000,
-      },
+      audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 16000 },
     });
     streamRef.current = stream;
 
@@ -147,7 +276,7 @@ export function useVoiceRecorder({
     const source = audioContext.createMediaStreamSource(stream);
     const analyser = audioContext.createAnalyser();
     analyser.fftSize = 512;
-    analyser.smoothingTimeConstant = 0.8;
+    analyser.smoothingTimeConstant = 0.3;
     source.connect(analyser);
 
     audioContextRef.current = audioContext;
@@ -156,27 +285,21 @@ export function useVoiceRecorder({
     pausedRef.current = false;
     setIsRecording(true);
 
-    // Voice activity detection loop
     vadIntervalRef.current = setInterval(() => {
       if (pausedRef.current || !activeRef.current) return;
 
       const volume = getVolume();
 
       if (volume > volumeThreshold) {
-        // Speech detected
         silenceStartRef.current = null;
-
         if (!isSpeakingRef.current) {
-          // Speech just started — begin recording
           isSpeakingRef.current = true;
           startNewRecording();
         }
       } else if (isSpeakingRef.current) {
-        // Silence while was speaking
         if (!silenceStartRef.current) {
           silenceStartRef.current = Date.now();
         } else if (Date.now() - silenceStartRef.current > silenceDuration) {
-          // Silence exceeded threshold — end this utterance
           isSpeakingRef.current = false;
           silenceStartRef.current = null;
           stopCurrentRecording();
@@ -185,7 +308,7 @@ export function useVoiceRecorder({
     }, 100);
   }, [volumeThreshold, silenceDuration, getVolume, startNewRecording, stopCurrentRecording]);
 
-  const stop = useCallback(() => {
+  const stopFallback = useCallback(() => {
     activeRef.current = false;
     pausedRef.current = false;
 
@@ -194,7 +317,6 @@ export function useVoiceRecorder({
       vadIntervalRef.current = null;
     }
 
-    // If currently recording, stop and send final chunk
     if (isSpeakingRef.current) {
       isSpeakingRef.current = false;
       stopCurrentRecording();
@@ -215,7 +337,7 @@ export function useVoiceRecorder({
     setIsRecording(false);
   }, [stopCurrentRecording]);
 
-  const pause = useCallback(() => {
+  const pauseFallback = useCallback(() => {
     pausedRef.current = true;
     if (isSpeakingRef.current) {
       isSpeakingRef.current = false;
@@ -224,9 +346,45 @@ export function useVoiceRecorder({
     silenceStartRef.current = null;
   }, [stopCurrentRecording]);
 
-  const resume = useCallback(() => {
+  const resumeFallback = useCallback(() => {
     pausedRef.current = false;
   }, []);
+
+  // ---- Public API: delegates to Web Speech or fallback ----
+
+  const useWebSpeech = !!SpeechRecognition;
+
+  const start = useCallback(async () => {
+    if (useWebSpeech) {
+      await startWebSpeech();
+    } else {
+      await startFallback();
+    }
+  }, [useWebSpeech, startWebSpeech, startFallback]);
+
+  const stop = useCallback(() => {
+    if (useWebSpeech) {
+      stopWebSpeech();
+    } else {
+      stopFallback();
+    }
+  }, [useWebSpeech, stopWebSpeech, stopFallback]);
+
+  const pause = useCallback(() => {
+    if (useWebSpeech) {
+      pauseWebSpeech();
+    } else {
+      pauseFallback();
+    }
+  }, [useWebSpeech, pauseWebSpeech, pauseFallback]);
+
+  const resume = useCallback(() => {
+    if (useWebSpeech) {
+      resumeWebSpeech();
+    } else {
+      resumeFallback();
+    }
+  }, [useWebSpeech, resumeWebSpeech, resumeFallback]);
 
   return {
     start,
