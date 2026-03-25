@@ -175,7 +175,16 @@ export default function SessionInterface({
         setIsProcessing(false);
       }
     },
-    [sessionId, therapist.id, sessionPrompt, participants, addTranscriptEntry, playAudio],
+    [
+      sessionId,
+      therapist.id,
+      sessionPrompt,
+      participants,
+      addTranscriptEntry,
+      playAudio,
+      showError,
+      t,
+    ],
   );
 
   const handleTranscript = useCallback(
