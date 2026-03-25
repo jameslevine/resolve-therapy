@@ -2,8 +2,24 @@ const mockBedrockSend = jest.fn();
 
 jest.mock("@aws-sdk/client-bedrock-runtime", () => ({
   BedrockRuntimeClient: jest.fn(() => ({ send: mockBedrockSend })),
+  ConverseStreamCommand: jest.fn((params) => ({ type: "ConverseStream", ...params })),
   ConverseCommand: jest.fn((params) => ({ type: "Converse", ...params })),
 }));
+
+// Helper to create a mock streaming response from full text
+function mockStreamResponse(text) {
+  const words = text.split(" ");
+  const events = words.map((word, i) => ({
+    contentBlockDelta: { delta: { text: (i > 0 ? " " : "") + word } },
+  }));
+  return {
+    stream: (async function* () {
+      for (const event of events) {
+        yield event;
+      }
+    })(),
+  };
+}
 
 const { getTherapistResponse } = require("../dist/lib/bedrock");
 
@@ -13,17 +29,11 @@ beforeEach(() => {
 
 describe("bedrock getTherapistResponse", () => {
   it("returns cleaned text and extracted memories", async () => {
-    mockBedrockSend.mockResolvedValue({
-      output: {
-        message: {
-          content: [
-            {
-              text: 'I hear you, Alice. It sounds like finances trigger anxiety.\n<memories>\n<memory category="TRIGGER">Financial discussions trigger anxiety in Alice</memory>\n<memory category="CONFLICT_PATTERN">Avoidance when money topics arise</memory>\n</memories>',
-            },
-          ],
-        },
-      },
-    });
+    mockBedrockSend.mockResolvedValue(
+      mockStreamResponse(
+        'I hear you, Alice. It sounds like finances trigger anxiety.\n<memories>\n<memory category="TRIGGER">Financial discussions trigger anxiety in Alice</memory>\n<memory category="CONFLICT_PATTERN">Avoidance when money topics arise</memory>\n</memories>',
+      ),
+    );
 
     const result = await getTherapistResponse(
       "You are Dr. Sarah Chen...",
@@ -40,13 +50,7 @@ describe("bedrock getTherapistResponse", () => {
   });
 
   it("returns text without memories when none present", async () => {
-    mockBedrockSend.mockResolvedValue({
-      output: {
-        message: {
-          content: [{ text: "Welcome to our session today." }],
-        },
-      },
-    });
+    mockBedrockSend.mockResolvedValue(mockStreamResponse("Welcome to our session today."));
 
     const result = await getTherapistResponse("You are Dr. Sarah Chen...", "", [], [], null);
 
@@ -55,13 +59,7 @@ describe("bedrock getTherapistResponse", () => {
   });
 
   it("handles empty messages array with default greeting", async () => {
-    mockBedrockSend.mockResolvedValue({
-      output: {
-        message: {
-          content: [{ text: "Hello, welcome." }],
-        },
-      },
-    });
+    mockBedrockSend.mockResolvedValue(mockStreamResponse("Hello, welcome."));
 
     const result = await getTherapistResponse("prompt", "", [], [], null);
 
@@ -71,9 +69,7 @@ describe("bedrock getTherapistResponse", () => {
   });
 
   it("merges consecutive same-role messages", async () => {
-    mockBedrockSend.mockResolvedValue({
-      output: { message: { content: [{ text: "I see." }] } },
-    });
+    mockBedrockSend.mockResolvedValue(mockStreamResponse("I see."));
 
     await getTherapistResponse(
       "prompt",
@@ -95,9 +91,7 @@ describe("bedrock getTherapistResponse", () => {
   });
 
   it("includes memories in system prompt when provided", async () => {
-    mockBedrockSend.mockResolvedValue({
-      output: { message: { content: [{ text: "I remember." }] } },
-    });
+    mockBedrockSend.mockResolvedValue(mockStreamResponse("I remember."));
 
     await getTherapistResponse(
       "prompt",
@@ -113,9 +107,7 @@ describe("bedrock getTherapistResponse", () => {
   });
 
   it("includes participant info in system prompt", async () => {
-    mockBedrockSend.mockResolvedValue({
-      output: { message: { content: [{ text: "Hello Alice and Bob." }] } },
-    });
+    mockBedrockSend.mockResolvedValue(mockStreamResponse("Hello Alice and Bob."));
 
     await getTherapistResponse("prompt", "", [], [{ content: "Hello", isTherapist: false }], {
       names: ["Alice", "Bob"],
@@ -130,9 +122,7 @@ describe("bedrock getTherapistResponse", () => {
   });
 
   it("strips assistant messages from start of conversation", async () => {
-    mockBedrockSend.mockResolvedValue({
-      output: { message: { content: [{ text: "Okay." }] } },
-    });
+    mockBedrockSend.mockResolvedValue(mockStreamResponse("Okay."));
 
     await getTherapistResponse(
       "prompt",

@@ -150,25 +150,26 @@ export default function SessionInterface({
         setIsProcessing(false);
 
         if (data.text) {
+          // Show text immediately in transcript
           addTranscriptEntry(data.text, true);
 
-          try {
-            const ttsRes = await apiFetch("/voice/speak", {
-              method: "POST",
-              body: JSON.stringify({
-                therapistId: therapist.id,
-                text: data.text,
-              }),
-            });
-            if (ttsRes.ok) {
-              const ttsData = await ttsRes.json();
-              if (ttsData.audioUrl) {
-                await playAudio(ttsData.audioUrl);
+          // Fire TTS in parallel — don't block the UI
+          apiFetch("/voice/speak", {
+            method: "POST",
+            body: JSON.stringify({
+              therapistId: therapist.id,
+              text: data.text,
+            }),
+          })
+            .then((ttsRes) => (ttsRes.ok ? ttsRes.json() : null))
+            .then((ttsData) => {
+              if (ttsData?.audioUrl) {
+                playAudio(ttsData.audioUrl);
               }
-            }
-          } catch {
-            // TTS failed silently — text response is still shown in transcript
-          }
+            })
+            .catch(() => {
+              // TTS failed silently — text response is still shown in transcript
+            });
         }
       } catch {
         showError(t("session.responseError"));

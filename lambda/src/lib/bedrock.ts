@@ -1,4 +1,4 @@
-import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-runtime";
+import { BedrockRuntimeClient, ConverseStreamCommand } from "@aws-sdk/client-bedrock-runtime";
 
 export const bedrock = new BedrockRuntimeClient({ region: process.env.AWS_REGION || "eu-west-2" });
 export const MODEL_ID = process.env.BEDROCK_MODEL_ID || "anthropic.claude-sonnet-4-6";
@@ -107,7 +107,7 @@ export async function getTherapistResponse(
     formatted.push({ role: "user", content: [{ text: "Hello, we're ready to begin." }] });
   }
 
-  const command = new ConverseCommand({
+  const command = new ConverseStreamCommand({
     modelId: MODEL_ID,
     system: systemContent,
     messages: formatted,
@@ -115,7 +115,16 @@ export async function getTherapistResponse(
   });
 
   const response = await bedrock.send(command);
-  const text = response.output?.message?.content?.[0]?.text || "";
+
+  // Accumulate streamed tokens
+  let text = "";
+  if (response.stream) {
+    for await (const event of response.stream) {
+      if (event.contentBlockDelta?.delta?.text) {
+        text += event.contentBlockDelta.delta.text;
+      }
+    }
+  }
 
   // Extract memories
   const memoryMatches: Memory[] = [];
