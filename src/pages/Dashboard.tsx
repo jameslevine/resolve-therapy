@@ -33,7 +33,7 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user?.sub) fetchBalance(user.sub);
+    if (user?.sub) fetchBalance();
   }, [user?.sub, fetchBalance]);
 
   const loadSessions = async () => {
@@ -41,7 +41,7 @@ export default function Dashboard() {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiFetch(`/sessions?userId=${encodeURIComponent(user.sub)}`);
+      const res = await apiFetch("/sessions");
       if (!res.ok) throw new Error(t("dashboard.fetchError"));
       const data = await res.json();
       setSessions(data.sessions || []);

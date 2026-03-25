@@ -94,6 +94,10 @@ Resources:
     Properties:
       TableName: !Ref TableName
       BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
       AttributeDefinitions:
         - AttributeName: PK
           AttributeType: S
@@ -125,6 +129,12 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref FrontendBucketName
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -238,8 +248,8 @@ Resources:
               - Effect: Allow
                 Action:
                   - bedrock:InvokeModel
-                  - bedrock:InvokeModelWithResponseStream
-                Resource: "*"
+                Resource:
+                  - !Sub "arn:aws:bedrock:eu-west-2::foundation-model/${BedrockModelId}"
         - PolicyName: S3TranscribeAccess
           PolicyDocument:
             Version: "2012-10-17"
@@ -258,7 +268,7 @@ Resources:
                 Action:
                   - transcribe:StartTranscriptionJob
                   - transcribe:GetTranscriptionJob
-                Resource: "*"
+                Resource: !Sub "arn:aws:transcribe:eu-west-2:${AWS::AccountId}:transcription-job/resolve-*"
 
   # ============================================================
   # Lambda Functions
@@ -346,6 +356,19 @@ Resources:
       BinaryMediaTypes:
         - multipart/form-data
         - audio/webm
+
+  # ============================================================
+  # Cognito Authorizer for API Gateway
+  # ============================================================
+  CognitoAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      Name: !Sub "resolve-therapy-${Environment}-cognito-auth"
+      RestApiId: !Ref ApiGateway
+      Type: COGNITO_USER_POOLS
+      IdentitySource: method.request.header.Authorization
+      ProviderARNs:
+        - !GetAtt UserPool.Arn
 
   # ---- /checkout resource ----
   CheckoutResource:
@@ -437,7 +460,8 @@ Resources:
       RestApiId: !Ref ApiGateway
       ResourceId: !Ref SessionsResource
       HttpMethod: GET
-      AuthorizationType: NONE
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
@@ -481,7 +505,8 @@ Resources:
       RestApiId: !Ref ApiGateway
       ResourceId: !Ref SessionsProxyResource
       HttpMethod: ANY
-      AuthorizationType: NONE
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
@@ -533,7 +558,8 @@ Resources:
       RestApiId: !Ref ApiGateway
       ResourceId: !Ref VoiceProxyResource
       HttpMethod: ANY
-      AuthorizationType: NONE
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
       Integration:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
@@ -587,7 +613,7 @@ Resources:
     Properties:
       RestApiId: !Ref ApiGateway
       DeploymentId: !Ref ApiDeployment
-      StageName: prod
+      StageName: !Ref Environment
 
   # ============================================================
   # Lambda Permissions for API Gateway
@@ -814,7 +840,7 @@ Resources:
 Outputs:
   ApiUrl:
     Description: API Gateway endpoint URL
-    Value: !Sub "https://${ApiGateway}.execute-api.eu-west-2.amazonaws.com/prod"
+    Value: !Sub "https://${ApiGateway}.execute-api.eu-west-2.amazonaws.com/${Environment}"
   CloudFrontUrl:
     Description: CloudFront distribution domain name
     Value: !Sub "https://${CloudFrontDistribution.DomainName}"

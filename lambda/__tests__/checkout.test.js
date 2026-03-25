@@ -28,6 +28,10 @@ process.env.STRIPE_WEBHOOK_SECRET = "whsec_test_secret";
 
 const { handler } = require("../dist/checkout");
 
+const authContext = (userId = "user-123") => ({
+  requestContext: { authorizer: { claims: { sub: userId } } },
+});
+
 beforeEach(() => {
   jest.clearAllMocks();
 });
@@ -41,15 +45,54 @@ describe("checkout handler", () => {
     });
   });
 
+  describe("authentication", () => {
+    it("returns 401 for non-webhook routes without auth", async () => {
+      const result = await handler({
+        httpMethod: "POST",
+        path: "/checkout/credits",
+        body: JSON.stringify({ packageId: "1" }),
+      });
+      expect(result.statusCode).toBe(401);
+    });
+
+    it("allows webhook without auth", async () => {
+      mockSend.mockResolvedValue({});
+
+      const result = await handler({
+        httpMethod: "POST",
+        path: "/checkout/webhook",
+        headers: { "Stripe-Signature": "t=123,v1=abc" },
+        body: JSON.stringify({
+          type: "checkout.session.completed",
+          data: {
+            object: {
+              payment_status: "paid",
+              metadata: {
+                orderId: "order-1",
+                userId: "user-123",
+                credits: "60",
+              },
+            },
+          },
+        }),
+      });
+
+      expect(result.statusCode).toBe(200);
+    });
+  });
+
   describe("POST /checkout/credits", () => {
     it("creates a Stripe checkout session for valid package", async () => {
-      mockSessionsCreate.mockResolvedValue({ url: "https://checkout.stripe.com/test" });
+      mockSessionsCreate.mockResolvedValue({
+        url: "https://checkout.stripe.com/test",
+      });
       mockSend.mockResolvedValue({});
 
       const result = await handler({
         httpMethod: "POST",
         path: "/checkout/credits",
-        body: JSON.stringify({ packageId: "1", userId: "user-123" }),
+        body: JSON.stringify({ packageId: "1" }),
+        ...authContext(),
       });
 
       expect(result.statusCode).toBe(200);
@@ -64,16 +107,8 @@ describe("checkout handler", () => {
       const result = await handler({
         httpMethod: "POST",
         path: "/checkout/credits",
-        body: JSON.stringify({ userId: "user-123" }),
-      });
-      expect(result.statusCode).toBe(400);
-    });
-
-    it("returns 400 for missing userId", async () => {
-      const result = await handler({
-        httpMethod: "POST",
-        path: "/checkout/credits",
-        body: JSON.stringify({ packageId: "1" }),
+        body: JSON.stringify({}),
+        ...authContext(),
       });
       expect(result.statusCode).toBe(400);
     });
@@ -82,7 +117,8 @@ describe("checkout handler", () => {
       const result = await handler({
         httpMethod: "POST",
         path: "/checkout/credits",
-        body: JSON.stringify({ packageId: "99", userId: "user-123" }),
+        body: JSON.stringify({ packageId: "99" }),
+        ...authContext(),
       });
       expect(result.statusCode).toBe(400);
     });
@@ -95,7 +131,8 @@ describe("checkout handler", () => {
       const result = await handler({
         httpMethod: "GET",
         path: "/checkout/balance",
-        queryStringParameters: { userId: "user-123" },
+        queryStringParameters: {},
+        ...authContext(),
       });
 
       expect(result.statusCode).toBe(200);
@@ -108,20 +145,12 @@ describe("checkout handler", () => {
       const result = await handler({
         httpMethod: "GET",
         path: "/checkout/balance",
-        queryStringParameters: { userId: "new-user" },
+        queryStringParameters: {},
+        ...authContext("new-user"),
       });
 
       expect(result.statusCode).toBe(200);
       expect(JSON.parse(result.body)).toEqual({ balance: 0 });
-    });
-
-    it("returns 400 without userId", async () => {
-      const result = await handler({
-        httpMethod: "GET",
-        path: "/checkout/balance",
-        queryStringParameters: {},
-      });
-      expect(result.statusCode).toBe(400);
     });
   });
 
@@ -133,7 +162,7 @@ describe("checkout handler", () => {
       });
       mockSend
         .mockResolvedValueOnce({ Item: { status: "pending" } }) // get order
-        .mockResolvedValueOnce({}) // update order
+        .mockResolvedValueOnce({}) // update order (idempotent)
         .mockResolvedValueOnce({}) // add credits
         .mockResolvedValueOnce({ Item: { balance: 60 } }); // get balance
 
@@ -141,6 +170,7 @@ describe("checkout handler", () => {
         httpMethod: "GET",
         path: "/checkout/verify",
         queryStringParameters: { session_id: "cs_test_123" },
+        ...authContext(),
       });
 
       expect(result.statusCode).toBe(200);
@@ -154,6 +184,7 @@ describe("checkout handler", () => {
         httpMethod: "GET",
         path: "/checkout/verify",
         queryStringParameters: {},
+        ...authContext(),
       });
       expect(result.statusCode).toBe(400);
     });
@@ -172,7 +203,11 @@ describe("checkout handler", () => {
           data: {
             object: {
               payment_status: "paid",
-              metadata: { orderId: "order-1", userId: "user-123", credits: "60" },
+              metadata: {
+                orderId: "order-1",
+                userId: "user-123",
+                credits: "60",
+              },
             },
           },
         }),
@@ -200,6 +235,7 @@ describe("checkout handler", () => {
         httpMethod: "GET",
         path: "/checkout/unknown",
         queryStringParameters: {},
+        ...authContext(),
       });
       expect(result.statusCode).toBe(404);
     });

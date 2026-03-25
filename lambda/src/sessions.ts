@@ -6,6 +6,7 @@ import { ddb, TABLE, PutCommand, GetCommand, QueryCommand, UpdateCommand } from 
 import { getTherapistResponse } from "./lib/bedrock";
 import { ok, error, options } from "./lib/response";
 import { loggerFromEvent, Logger } from "./lib/logger";
+import { getAuthUserId } from "./lib/auth";
 
 interface TranscriptEntry {
   isTherapist: boolean;
@@ -204,6 +205,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   const path = event.path || "";
   const method = event.httpMethod;
 
+  const authUserId = getAuthUserId(event);
+  if (!authUserId) return error(401, "Unauthorized");
+
   try {
     // POST /sessions/respond
     if (path.endsWith("/respond") && method === "POST") {
@@ -230,7 +234,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       const parts = path.split("/");
       const sessionIdx = parts.indexOf("sessions");
       const sessionId = parts[sessionIdx + 1];
-      return await handleGetTranscript(sessionId);
+      return await handleGetTranscript(sessionId, authUserId);
     }
 
     // GET /sessions/{id}/insights
@@ -238,7 +242,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       const parts = path.split("/");
       const sessionIdx = parts.indexOf("sessions");
       const sessionId = parts[sessionIdx + 1];
-      return await handleGetInsights(sessionId);
+      return await handleGetInsights(sessionId, authUserId);
     }
 
     // GET /sessions/progress?userId=xxx
@@ -249,7 +253,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     // GET /sessions/{id}
     const idMatch = path.match(/\/sessions\/([^/]+)$/);
     if (idMatch && method === "GET") {
-      return await handleGetSession(idMatch[1]);
+      return await handleGetSession(idMatch[1], authUserId);
     }
 
     // GET /sessions?userId=xxx
@@ -270,10 +274,9 @@ function extractSessionId(path: string): string {
 }
 
 async function handleStartSession(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const { therapistId, prompt, userId, participants } = JSON.parse(
-    event.body || "{}",
-  ) as StartSessionBody;
-  if (!therapistId || !userId) return error(400, "therapistId and userId are required");
+  const userId = getAuthUserId(event)!;
+  const { therapistId, prompt, participants } = JSON.parse(event.body || "{}") as StartSessionBody;
+  if (!therapistId) return error(400, "therapistId is required");
 
   // Check credit balance (balance is in minutes)
   const creditResult = await ddb.send(
@@ -310,7 +313,13 @@ async function handleStartSession(event: APIGatewayProxyEvent): Promise<APIGatew
   return ok({ sessionId, balance });
 }
 
-async function handleGetInsights(id: string): Promise<APIGatewayProxyResult> {
+async function handleGetInsights(id: string, authUserId: string): Promise<APIGatewayProxyResult> {
+  const session = await ddb.send(
+    new GetCommand({ TableName: TABLE, Key: { PK: `SESSION#${id}`, SK: "META" } }),
+  );
+  if (!session.Item) return error(404, "Session not found");
+  if (session.Item.userId !== authUserId) return error(403, "Forbidden");
+
   const result = await ddb.send(
     new GetCommand({
       TableName: TABLE,
@@ -324,7 +333,13 @@ async function handleGetInsights(id: string): Promise<APIGatewayProxyResult> {
   return ok({ insights });
 }
 
-async function handleGetTranscript(id: string): Promise<APIGatewayProxyResult> {
+async function handleGetTranscript(id: string, authUserId: string): Promise<APIGatewayProxyResult> {
+  const session = await ddb.send(
+    new GetCommand({ TableName: TABLE, Key: { PK: `SESSION#${id}`, SK: "META" } }),
+  );
+  if (!session.Item) return error(404, "Session not found");
+  if (session.Item.userId !== authUserId) return error(403, "Forbidden");
+
   const result = await ddb.send(
     new GetCommand({
       TableName: TABLE,
@@ -335,7 +350,7 @@ async function handleGetTranscript(id: string): Promise<APIGatewayProxyResult> {
   return ok({ entries: result.Item.entries || [] });
 }
 
-async function handleGetSession(id: string): Promise<APIGatewayProxyResult> {
+async function handleGetSession(id: string, authUserId: string): Promise<APIGatewayProxyResult> {
   const result = await ddb.send(
     new GetCommand({
       TableName: TABLE,
@@ -343,11 +358,12 @@ async function handleGetSession(id: string): Promise<APIGatewayProxyResult> {
     }),
   );
   if (!result.Item) return error(404, "Session not found");
+  if (result.Item.userId !== authUserId) return error(403, "Forbidden");
   return ok(result.Item);
 }
 
 async function handleListSessions(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const userId = event.queryStringParameters?.userId;
+  const userId = getAuthUserId(event)!;
 
   if (userId) {
     const result = await ddb.send(
@@ -370,8 +386,7 @@ async function handleListSessions(event: APIGatewayProxyEvent): Promise<APIGatew
 }
 
 async function handleGetProgress(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const userId = event.queryStringParameters?.userId;
-  if (!userId) return error(400, "userId is required");
+  const userId = getAuthUserId(event)!;
 
   // Get all completed sessions
   const result = await ddb.send(

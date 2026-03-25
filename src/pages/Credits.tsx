@@ -23,7 +23,7 @@ export default function Credits() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user?.sub) fetchBalance(user.sub);
+    if (user?.sub) fetchBalance();
   }, [user?.sub, fetchBalance]);
 
   useEffect(() => {
@@ -31,19 +31,18 @@ export default function Credits() {
       setPurchaseSuccess(true);
       const sessionId = searchParams.get("session_id");
       if (sessionId) {
-        // Verify session and fulfill credits immediately
         apiFetch(`/checkout/verify?session_id=${encodeURIComponent(sessionId)}`)
           .then((res) => res.json())
           .then((data) => {
             if (data.balance !== undefined) {
-              fetchBalance(user?.sub || "");
+              fetchBalance();
             }
           })
           .catch(() => {
-            if (user?.sub) fetchBalance(user.sub);
+            fetchBalance();
           });
       } else if (user?.sub) {
-        setTimeout(() => fetchBalance(user.sub), 2000);
+        setTimeout(() => fetchBalance(), 2000);
       }
     }
   }, [searchParams, user?.sub, fetchBalance]);
@@ -55,7 +54,7 @@ export default function Credits() {
     try {
       const res = await apiFetch("/checkout/credits", {
         method: "POST",
-        body: JSON.stringify({ packageId: pkgId, userId: user.sub }),
+        body: JSON.stringify({ packageId: pkgId }),
       });
       const data = await res.json();
       if (res.ok && data.url) {

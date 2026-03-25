@@ -128,7 +128,6 @@ export default function NewSession() {
         body: JSON.stringify({
           therapistId: selectedTherapist.id,
           prompt,
-          userId: user.sub,
           participants,
         }),
       });

@@ -22,7 +22,7 @@ export default function BookingModal({ therapist, onClose }: BookingModalProps) 
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user?.sub) fetchBalance(user.sub);
+    if (user?.sub) fetchBalance();
   }, [user?.sub, fetchBalance]);
 
   const handleStartSession = async () => {
@@ -44,7 +44,6 @@ export default function BookingModal({ therapist, onClose }: BookingModalProps) 
         body: JSON.stringify({
           therapistId: therapist.id,
           prompt,
-          userId: user.sub,
         }),
       });
       if (!res.ok) {

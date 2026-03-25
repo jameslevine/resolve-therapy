@@ -29,7 +29,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    if (user?.sub) fetchBalance(user.sub);
+    if (user?.sub) fetchBalance();
   }, [user?.sub, fetchBalance]);
   const [langOpen, setLangOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);

@@ -16,6 +16,10 @@ jest.mock("../dist/lib/bedrock", () => ({
 
 const { handler } = require("../dist/sessions");
 
+const authContext = (userId = "user-123") => ({
+  requestContext: { authorizer: { claims: { sub: userId } } },
+});
+
 beforeEach(() => {
   mockSend.mockReset();
   mockGetTherapistResponse.mockReset();
@@ -30,6 +34,16 @@ describe("sessions handler", () => {
     });
   });
 
+  describe("authentication", () => {
+    it("returns 401 when no auth context is provided", async () => {
+      const result = await handler({
+        httpMethod: "GET",
+        path: "/sessions",
+      });
+      expect(result.statusCode).toBe(401);
+    });
+  });
+
   describe("POST /sessions/start", () => {
     it("creates a session when user has credits", async () => {
       mockSend
@@ -41,10 +55,14 @@ describe("sessions handler", () => {
         path: "/sessions/start",
         body: JSON.stringify({
           therapistId: "dr-sarah-chen",
-          userId: "user-123",
           prompt: "Communication issues",
-          participants: { names: ["Alice", "Bob"], relationship: "Partners", context: "" },
+          participants: {
+            names: ["Alice", "Bob"],
+            relationship: "Partners",
+            context: "",
+          },
         }),
+        ...authContext(),
       });
 
       expect(result.statusCode).toBe(200);
@@ -59,7 +77,8 @@ describe("sessions handler", () => {
       const result = await handler({
         httpMethod: "POST",
         path: "/sessions/start",
-        body: JSON.stringify({ therapistId: "dr-sarah-chen", userId: "user-123" }),
+        body: JSON.stringify({ therapistId: "dr-sarah-chen" }),
+        ...authContext(),
       });
 
       expect(result.statusCode).toBe(403);
@@ -71,7 +90,8 @@ describe("sessions handler", () => {
       const result = await handler({
         httpMethod: "POST",
         path: "/sessions/start",
-        body: JSON.stringify({ therapistId: "dr-sarah-chen", userId: "user-123" }),
+        body: JSON.stringify({ therapistId: "dr-sarah-chen" }),
+        ...authContext(),
       });
 
       expect(result.statusCode).toBe(403);
@@ -81,17 +101,8 @@ describe("sessions handler", () => {
       const result = await handler({
         httpMethod: "POST",
         path: "/sessions/start",
-        body: JSON.stringify({ userId: "user-123" }),
-      });
-
-      expect(result.statusCode).toBe(400);
-    });
-
-    it("returns 400 when userId is missing", async () => {
-      const result = await handler({
-        httpMethod: "POST",
-        path: "/sessions/start",
-        body: JSON.stringify({ therapistId: "dr-sarah-chen" }),
+        body: JSON.stringify({}),
+        ...authContext(),
       });
 
       expect(result.statusCode).toBe(400);
@@ -108,7 +119,12 @@ describe("sessions handler", () => {
 
       mockGetTherapistResponse.mockResolvedValue({
         text: "Thank you for sharing that.",
-        memories: [{ category: "CONFLICT_PATTERN", value: "Avoidance when discussing finances" }],
+        memories: [
+          {
+            category: "CONFLICT_PATTERN",
+            value: "Avoidance when discussing finances",
+          },
+        ],
       });
 
       const result = await handler({
@@ -120,6 +136,7 @@ describe("sessions handler", () => {
           prompt: "Communication",
           transcript: [{ content: "We argue about money", isTherapist: false }],
         }),
+        ...authContext(),
       });
 
       expect(result.statusCode).toBe(200);
@@ -140,6 +157,7 @@ describe("sessions handler", () => {
           therapistId: "dr-unknown",
           transcript: [],
         }),
+        ...authContext(),
       });
 
       expect(result.statusCode).toBe(400);
@@ -150,6 +168,7 @@ describe("sessions handler", () => {
         httpMethod: "POST",
         path: "/sessions/respond",
         body: JSON.stringify({ therapistId: "dr-sarah-chen" }),
+        ...authContext(),
       });
 
       expect(result.statusCode).toBe(400);
@@ -174,6 +193,7 @@ describe("sessions handler", () => {
           therapistId: "dr-sarah-chen",
           transcript: [{ content: "Hello", isTherapist: false }],
         }),
+        ...authContext(),
       });
 
       expect(result.statusCode).toBe(200);
@@ -185,12 +205,18 @@ describe("sessions handler", () => {
   describe("GET /sessions/{id}", () => {
     it("returns session metadata", async () => {
       mockSend.mockResolvedValueOnce({
-        Item: { id: "session-1", therapistId: "dr-sarah-chen", status: "active" },
+        Item: {
+          id: "session-1",
+          therapistId: "dr-sarah-chen",
+          status: "active",
+          userId: "user-123",
+        },
       });
 
       const result = await handler({
         httpMethod: "GET",
         path: "/sessions/session-1",
+        ...authContext(),
       });
 
       expect(result.statusCode).toBe(200);
@@ -203,21 +229,44 @@ describe("sessions handler", () => {
       const result = await handler({
         httpMethod: "GET",
         path: "/sessions/non-existent",
+        ...authContext(),
       });
 
       expect(result.statusCode).toBe(404);
+    });
+
+    it("returns 403 when session belongs to another user", async () => {
+      mockSend.mockResolvedValueOnce({
+        Item: {
+          id: "session-1",
+          therapistId: "dr-sarah-chen",
+          status: "active",
+          userId: "other-user",
+        },
+      });
+
+      const result = await handler({
+        httpMethod: "GET",
+        path: "/sessions/session-1",
+        ...authContext(),
+      });
+
+      expect(result.statusCode).toBe(403);
     });
   });
 
   describe("GET /sessions/{id}/transcript", () => {
     it("returns transcript entries", async () => {
-      mockSend.mockResolvedValueOnce({
-        Item: { entries: [{ content: "Hello", isTherapist: false }] },
-      });
+      mockSend
+        .mockResolvedValueOnce({ Item: { userId: "user-123" } }) // session META ownership check
+        .mockResolvedValueOnce({
+          Item: { entries: [{ content: "Hello", isTherapist: false }] },
+        }); // transcript
 
       const result = await handler({
         httpMethod: "GET",
         path: "/sessions/session-1/transcript",
+        ...authContext(),
       });
 
       expect(result.statusCode).toBe(200);
@@ -225,11 +274,14 @@ describe("sessions handler", () => {
     });
 
     it("returns empty entries when no transcript exists", async () => {
-      mockSend.mockResolvedValueOnce({ Item: null });
+      mockSend
+        .mockResolvedValueOnce({ Item: { userId: "user-123" } }) // session META
+        .mockResolvedValueOnce({ Item: null }); // transcript
 
       const result = await handler({
         httpMethod: "GET",
         path: "/sessions/session-1/transcript",
+        ...authContext(),
       });
 
       expect(result.statusCode).toBe(200);
@@ -237,7 +289,7 @@ describe("sessions handler", () => {
     });
   });
 
-  describe("GET /sessions?userId=xxx", () => {
+  describe("GET /sessions (list)", () => {
     it("returns user sessions", async () => {
       mockSend.mockResolvedValueOnce({
         Items: [
@@ -249,22 +301,11 @@ describe("sessions handler", () => {
       const result = await handler({
         httpMethod: "GET",
         path: "/sessions",
-        queryStringParameters: { userId: "user-123" },
+        ...authContext(),
       });
 
       expect(result.statusCode).toBe(200);
       expect(JSON.parse(result.body).sessions).toHaveLength(2);
-    });
-
-    it("returns empty array when no userId provided", async () => {
-      const result = await handler({
-        httpMethod: "GET",
-        path: "/sessions",
-        queryStringParameters: {},
-      });
-
-      expect(result.statusCode).toBe(200);
-      expect(JSON.parse(result.body).sessions).toEqual([]);
     });
   });
 
@@ -273,7 +314,11 @@ describe("sessions handler", () => {
       const createdAt = new Date(Date.now() - 15 * 60000).toISOString(); // 15 mins ago
       mockSend
         .mockResolvedValueOnce({
-          Item: { userId: "user-123", createdAt, therapistId: "dr-sarah-chen" },
+          Item: {
+            userId: "user-123",
+            createdAt,
+            therapistId: "dr-sarah-chen",
+          },
         }) // get session
         .mockResolvedValueOnce({}) // update credits
         .mockResolvedValueOnce({}) // put transcript
@@ -289,6 +334,7 @@ describe("sessions handler", () => {
             { content: "Welcome", isTherapist: true },
           ],
         }),
+        ...authContext(),
       });
 
       expect(result.statusCode).toBe(200);
@@ -302,6 +348,7 @@ describe("sessions handler", () => {
         httpMethod: "POST",
         path: "/sessions/non-existent/end",
         body: JSON.stringify({ transcript: [] }),
+        ...authContext(),
       });
 
       expect(result.statusCode).toBe(404);
@@ -313,6 +360,7 @@ describe("sessions handler", () => {
       const result = await handler({
         httpMethod: "DELETE",
         path: "/sessions/unknown-action",
+        ...authContext(),
       });
 
       expect(result.statusCode).toBe(404);

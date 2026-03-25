@@ -18,11 +18,11 @@ describe("credits store", () => {
       json: () => Promise.resolve({ balance: 120 }),
     });
 
-    await useCreditsStore.getState().fetchBalance("user-123");
+    await useCreditsStore.getState().fetchBalance();
 
     expect(useCreditsStore.getState().balance).toBe(120);
     expect(useCreditsStore.getState().loading).toBe(false);
-    expect(apiFetch).toHaveBeenCalledWith("/checkout/balance?userId=user-123");
+    expect(apiFetch).toHaveBeenCalledWith("/checkout/balance");
   });
 
   it("handles zero balance", async () => {
@@ -31,7 +31,7 @@ describe("credits store", () => {
       json: () => Promise.resolve({ balance: 0 }),
     });
 
-    await useCreditsStore.getState().fetchBalance("user-123");
+    await useCreditsStore.getState().fetchBalance();
 
     expect(useCreditsStore.getState().balance).toBe(0);
   });
@@ -39,7 +39,7 @@ describe("credits store", () => {
   it("handles API error response", async () => {
     apiFetch.mockResolvedValue({ ok: false });
 
-    await useCreditsStore.getState().fetchBalance("user-123");
+    await useCreditsStore.getState().fetchBalance();
 
     expect(useCreditsStore.getState().balance).toBe(0);
     expect(useCreditsStore.getState().loading).toBe(false);
@@ -48,7 +48,7 @@ describe("credits store", () => {
   it("handles network error", async () => {
     apiFetch.mockRejectedValue(new Error("Network error"));
 
-    await useCreditsStore.getState().fetchBalance("user-123");
+    await useCreditsStore.getState().fetchBalance();
 
     expect(useCreditsStore.getState().balance).toBe(0);
     expect(useCreditsStore.getState().loading).toBe(false);

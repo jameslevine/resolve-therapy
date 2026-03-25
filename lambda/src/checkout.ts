@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { ddb, TABLE, PutCommand, GetCommand, UpdateCommand } from "./lib/dynamo";
 import { ok, error, options } from "./lib/response";
 import { loggerFromEvent, Logger } from "./lib/logger";
+import { getAuthUserId } from "./lib/auth";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -28,17 +29,23 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   const method = event.httpMethod;
 
   try {
-    if (path.endsWith("/credits") && method === "POST") {
-      return await handleBuyCredits(event);
-    }
+    // Webhook is unauthenticated (called by Stripe)
     if (path.endsWith("/webhook") && method === "POST") {
       return await handleWebhook(event);
+    }
+
+    // All other routes require authentication
+    const authUserId = getAuthUserId(event);
+    if (!authUserId) return error(401, "Unauthorized");
+
+    if (path.endsWith("/credits") && method === "POST") {
+      return await handleBuyCredits(event, authUserId);
     }
     if (path.endsWith("/verify") && method === "GET") {
       return await handleVerifySession(event);
     }
     if (path.endsWith("/balance") && method === "GET") {
-      return await handleGetBalance(event);
+      return await handleGetBalance(authUserId);
     }
     return error(404, "Not found");
   } catch (err) {
@@ -47,9 +54,12 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
   }
 };
 
-async function handleBuyCredits(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const { packageId, userId } = JSON.parse(event.body || "{}");
-  if (!packageId || !userId) return error(400, "packageId and userId are required");
+async function handleBuyCredits(
+  event: APIGatewayProxyEvent,
+  userId: string,
+): Promise<APIGatewayProxyResult> {
+  const { packageId } = JSON.parse(event.body || "{}");
+  if (!packageId) return error(400, "packageId is required");
 
   const pkg = CREDIT_PACKAGES[packageId];
   if (!pkg) return error(400, "Invalid package");
@@ -132,15 +142,25 @@ async function fulfillCredits(metadata: Record<string, string>): Promise<void> {
   const { orderId, userId, credits } = metadata;
   const creditCount = parseInt(credits);
 
-  await ddb.send(
-    new UpdateCommand({
-      TableName: TABLE,
-      Key: { PK: `ORDER#${orderId}`, SK: "META" },
-      UpdateExpression: "SET #status = :status, fulfilledAt = :now",
-      ExpressionAttributeNames: { "#status": "status" },
-      ExpressionAttributeValues: { ":status": "fulfilled", ":now": new Date().toISOString() },
-    }),
-  );
+  // Idempotency: only fulfill if order is not already fulfilled
+  try {
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: `ORDER#${orderId}`, SK: "META" },
+        UpdateExpression: "SET #status = :status, fulfilledAt = :now",
+        ConditionExpression: "#status <> :status",
+        ExpressionAttributeNames: { "#status": "status" },
+        ExpressionAttributeValues: { ":status": "fulfilled", ":now": new Date().toISOString() },
+      }),
+    );
+  } catch (err) {
+    if ((err as { name?: string }).name === "ConditionalCheckFailedException") {
+      log.info("Order already fulfilled, skipping", { orderId });
+      return;
+    }
+    throw err;
+  }
 
   try {
     await ddb.send(
@@ -193,10 +213,7 @@ async function handleVerifySession(event: APIGatewayProxyEvent): Promise<APIGate
   return ok({ fulfilled: false });
 }
 
-async function handleGetBalance(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
-  const userId = event.queryStringParameters?.userId;
-  if (!userId) return error(400, "userId is required");
-
+async function handleGetBalance(userId: string): Promise<APIGatewayProxyResult> {
   const result = await ddb.send(
     new GetCommand({
       TableName: TABLE,

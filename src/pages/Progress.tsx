@@ -31,7 +31,7 @@ export default function Progress() {
 
   useEffect(() => {
     if (!user?.sub) return;
-    apiFetch(`/sessions/progress?userId=${encodeURIComponent(user.sub)}`)
+    apiFetch("/sessions/progress")
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load progress");
         return res.json();

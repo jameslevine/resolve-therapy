@@ -29,7 +29,7 @@ export default function TherapistProfile() {
 
   useEffect(() => {
     if (!user?.sub || !id) return;
-    apiFetch(`/sessions?userId=${encodeURIComponent(user.sub)}`)
+    apiFetch("/sessions")
       .then((res) => (res.ok ? res.json() : { sessions: [] }))
       .then((data) => {
         const filtered = (data.sessions || []).filter(
