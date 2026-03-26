@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { RTL_LANGUAGES } from "./i18n";
 import { useAuthStore } from "./store/auth";
@@ -27,7 +27,9 @@ import ProgressPage from "./pages/Progress";
 
 export default function App() {
   const { i18n } = useTranslation();
+  const location = useLocation();
   const initialize = useAuthStore((s) => s.initialize);
+  const isSessionPage = /^\/session\/[^/]+$/.test(location.pathname);
 
   useEffect(() => {
     initialize();
@@ -113,7 +115,7 @@ export default function App() {
           />
         </Routes>
       </main>
-      <Footer />
+      {!isSessionPage && <Footer />}
     </>
   );
 }

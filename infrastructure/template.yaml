@@ -279,6 +279,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
                 Resource:
                   - !Sub "arn:aws:bedrock:eu-west-2::foundation-model/${BedrockModelId}"
         - PolicyName: S3TranscribeAccess

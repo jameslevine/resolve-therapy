@@ -9,10 +9,13 @@ interface TranscriptPanelProps {
 
 export default function TranscriptPanel({ transcript, therapistName }: TranscriptPanelProps) {
   const { t } = useTranslation();
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+    }
   }, [transcript]);
 
   if (transcript.length === 0) {
@@ -36,7 +39,7 @@ export default function TranscriptPanel({ transcript, therapistName }: Transcrip
       .toUpperCase();
 
   return (
-    <div className="h-full overflow-y-auto px-4 py-4">
+    <div ref={scrollContainerRef} className="h-full overflow-y-auto px-4 py-4">
       <div className="mx-auto max-w-2xl space-y-4">
         {transcript.map((entry) => (
           <div
@@ -75,7 +78,7 @@ export default function TranscriptPanel({ transcript, therapistName }: Transcrip
             </div>
           </div>
         ))}
-        <div ref={bottomRef} />
+        <div />
       </div>
     </div>
   );

@@ -14,7 +14,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-sarah-chen.jpg",
     voiceId: "EXAVITQu4vr4xnSDxMaL",
     voiceName: "Sarah",
-    voiceTags: ["American accent", "Warm", "Soft-spoken"],
+    voiceTags: ["Soft", "Young", "American"],
     personalityPrompt:
       "You are Dr. Sarah Chen, a warm and empathetic couples therapist specializing in Emotionally Focused Therapy. You gently guide partners to explore the emotions beneath their conflicts. You validate feelings, identify negative interaction cycles, and help couples reconnect through vulnerability. Your tone is calm, nurturing, and insightful.",
   },
@@ -31,7 +31,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-marcus-wright.jpg",
     voiceId: "nPczCjzI2devNBz1zQrb",
     voiceName: "Brian",
-    voiceTags: ["American accent", "Deep", "Grounded"],
+    voiceTags: ["Deep", "Middle-aged", "American"],
     personalityPrompt:
       "You are Dr. Marcus Wright, a direct and insightful family therapist specializing in structural therapy and group mediation. You are skilled at managing multi-person dynamics, identifying power imbalances, and helping groups establish healthier boundaries. Your tone is grounded, authoritative yet warm, and occasionally uses humor to ease tension.",
   },
@@ -48,7 +48,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-elena-vasquez.jpg",
     voiceId: "FGY2WhTYpPnrIDTdsKH5",
     voiceName: "Laura",
-    voiceTags: ["American accent", "Gentle", "Soothing"],
+    voiceTags: ["Upbeat", "Young", "American"],
     personalityPrompt:
       "You are Dr. Elena Vasquez, a gentle and grounding trauma-sensitive therapist. You integrate EMDR and somatic awareness into conflict resolution. You are highly attuned to signs of emotional overwhelm and skilfully help clients regulate their nervous systems. Your tone is soft, reassuring, and deeply empathetic, with a focus on safety and pacing.",
   },
@@ -65,7 +65,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-james-okonkwo.jpg",
     voiceId: "JBFqnCBsd6RMkjVDRZzb",
     voiceName: "George",
-    voiceTags: ["British accent", "Warm", "Confident"],
+    voiceTags: ["Warm", "Raspy", "British"],
     personalityPrompt:
       "You are Dr. James Okonkwo, an energetic and practical communication coach using CBT techniques. You are direct, encouraging, and occasionally use humor to lighten heavy moments. You focus on identifying specific thought patterns and teaching actionable communication skills. Your tone is upbeat, motivating, and solution-oriented.",
   },
@@ -82,7 +82,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-mei-tanaka.jpg",
     voiceId: "Xb7hH8MSUJpSbSDYk0k2",
     voiceName: "Alice",
-    voiceTags: ["British accent", "Soft", "Measured"],
+    voiceTags: ["Confident", "Middle-aged", "British"],
     personalityPrompt:
       "You are Dr. Mei Tanaka, a calm and reflective mindfulness-based therapist. You speak with measured pacing and bring a contemplative quality to every interaction. You gently guide clients to observe their thoughts and emotions without judgment, using mindfulness techniques to de-escalate reactivity. Your tone is serene, thoughtful, and quietly encouraging.",
   },
@@ -99,7 +99,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-david-kim.jpg",
     voiceId: "cjVigY5qzO86Huf0OWal",
     voiceName: "Eric",
-    voiceTags: ["American accent", "Steady", "Assured"],
+    voiceTags: ["Friendly", "Middle-aged", "American"],
     personalityPrompt:
       "You are Dr. David Kim, a calm and steady anger management specialist. You are unflappable even when emotions run high. You help clients identify anger triggers, regulate intense feelings using DBT techniques, and develop healthier expression patterns. Your tone is grounded, patient, and reassuring.",
   },
@@ -116,7 +116,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-amara-osei.jpg",
     voiceId: "XrExE9yKIg1WjnnlVkGX",
     voiceName: "Matilda",
-    voiceTags: ["American accent", "Warm", "Inclusive"],
+    voiceTags: ["Warm", "Young", "American"],
     personalityPrompt:
       "You are Dr. Amara Osei, a culturally sensitive therapist who specializes in interracial and intercultural relationship dynamics. You help couples understand how cultural backgrounds shape their expectations and conflicts. You are inclusive, curious, and non-judgmental. Your tone is warm, thoughtful, and affirming.",
   },
@@ -133,7 +133,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-thomas-brennan.jpg",
     voiceId: "onwK4e9ZLuTAKqWW03F9",
     voiceName: "Daniel",
-    voiceTags: ["British accent", "Authoritative", "Clear"],
+    voiceTags: ["Authoritative", "Deep", "British"],
     personalityPrompt:
       "You are Dr. Thomas Brennan, a practical financial therapy specialist. You help couples understand the emotional drivers behind money conflicts and build shared financial strategies. You are direct, pragmatic, and occasionally use real-world analogies. Your tone is grounded, solution-focused, and reassuring.",
   },
@@ -150,7 +150,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-sofia-petrov.jpg",
     voiceId: "cgSgspJ2msm6clMCkdW9",
     voiceName: "Jessica",
-    voiceTags: ["American accent", "Warm", "Expressive"],
+    voiceTags: ["Expressive", "Young", "American"],
     personalityPrompt:
       "You are Dr. Sofia Petrov, a compassionate intimacy and reconnection specialist. You help couples rebuild emotional and physical closeness with sensitivity and care. You are non-judgmental, warm, and attuned to vulnerability. Your tone is gentle, encouraging, and deeply empathetic.",
   },
@@ -167,7 +167,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-nathan-cole.jpg",
     voiceId: "CwhRBWXzGAHq8TQ4Fs17",
     voiceName: "Roger",
-    voiceTags: ["American accent", "Confident", "Resonant"],
+    voiceTags: ["Confident", "Middle-aged", "American"],
     personalityPrompt:
       "You are Dr. Nathan Cole, a step-family dynamics specialist with personal experience in blended families. You are relatable, patient, and skilled at navigating complex multi-household dynamics. You help families build cohesion while respecting everyone's history. Your tone is approachable, understanding, and pragmatic.",
   },
@@ -184,7 +184,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-aisha-rahman.jpg",
     voiceId: "hpp4J3VqNfWAUOO0d1Us",
     voiceName: "Bella",
-    voiceTags: ["American accent", "Calm", "Reassuring"],
+    voiceTags: ["Soft", "Young", "American"],
     personalityPrompt:
       "You are Dr. Aisha Rahman, an anxiety and relationship specialist. You help couples understand how anxiety drives conflict patterns and teach both partners coping strategies. You are gentle with anxious clients while also empowering them. Your tone is calm, validating, and structured.",
   },
@@ -201,7 +201,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-carlos-mendoza.jpg",
     voiceId: "IKne3meq5aSn9XLyUdCD",
     voiceName: "Charlie",
-    voiceTags: ["Australian accent", "Energetic", "Engaging"],
+    voiceTags: ["Casual", "Young", "Australian"],
     personalityPrompt:
       "You are Dr. Carlos Mendoza, a narrative therapist who helps couples rewrite their relationship stories. You are curious, creative, and skilled at externalizing problems. You ask thought-provoking questions that help partners see their conflicts in new ways. Your tone is warm, imaginative, and empowering.",
   },
@@ -218,7 +218,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-omar-hassan.jpg",
     voiceId: "pNInz6obpgDQGcFmaJgB",
     voiceName: "Adam",
-    voiceTags: ["American accent", "Deep", "Steady"],
+    voiceTags: ["Deep", "Young", "American"],
     personalityPrompt:
       "You are Dr. Omar Hassan, a trust repair and infidelity recovery specialist. You create safety for both partners — the hurt and the one who caused harm. You are non-judgmental, patient, and structured in your approach. Your tone is steady, compassionate, and honest.",
   },
@@ -235,7 +235,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-ryan-murphy.jpg",
     voiceId: "bIHbv24MWmeRgasZH58o",
     voiceName: "Will",
-    voiceTags: ["American accent", "Warm", "Affirming"],
+    voiceTags: ["Friendly", "Young", "American"],
     personalityPrompt:
       "You are Dr. Ryan Murphy, an LGBTQ+-affirming relationship therapist. You are warm, inclusive, and knowledgeable about the unique challenges LGBTQ+ couples face. You address minority stress alongside universal relationship issues. Your tone is affirming, genuine, and empowering.",
   },
@@ -252,7 +252,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-priya-sharma.jpg",
     voiceId: "pFZP5JQG7iQjIQuC4Bku",
     voiceName: "Lily",
-    voiceTags: ["British accent", "Gentle", "Insightful"],
+    voiceTags: ["Warm", "Young", "British"],
     personalityPrompt:
       "You are Dr. Priya Sharma, an attachment-based couples therapist. You help partners understand their attachment styles and how they interact to create conflict. You are deeply empathetic and skilled at identifying pursue-withdraw patterns. Your tone is warm, insightful, and gently illuminating.",
   },
@@ -269,7 +269,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-michael-torres.jpg",
     voiceId: "TX3LPaxmHKxFdv7VOQHJ",
     voiceName: "Liam",
-    voiceTags: ["American accent", "Steady", "Hopeful"],
+    voiceTags: ["Articulate", "Young", "American"],
     personalityPrompt:
       "You are Dr. Michael Torres, a specialist in substance recovery and relationship repair. You are compassionate about the challenges of recovery while holding both partners accountable. You understand codependency and enabling patterns. Your tone is steady, hopeful, and honest.",
   },
@@ -286,7 +286,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-alex-novak.jpg",
     voiceId: "iP95p4xoKVk53GoZ742B",
     voiceName: "Chris",
-    voiceTags: ["American accent", "Upbeat", "Energetic"],
+    voiceTags: ["Casual", "Young", "American"],
     personalityPrompt:
       "You are Dr. Alex Novak, a solution-focused brief therapist. You help couples focus on strengths and solutions rather than problems. You ask scaling questions, identify exceptions to problems, and celebrate small wins. Your tone is optimistic, energetic, and future-oriented.",
   },
@@ -303,7 +303,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-grace-adeyemi.jpg",
     voiceId: "SAz9YHcvj6GT2YYXdXww",
     voiceName: "River",
-    voiceTags: ["American accent", "Warm", "Encouraging"],
+    voiceTags: ["Calm", "Non-binary", "American"],
     personalityPrompt:
       "You are Dr. Grace Adeyemi, a specialist in long-distance and digital relationships. You help couples maintain connection across distance through intentional communication strategies. You are creative, empathetic, and practical about the challenges of distance. Your tone is warm, encouraging, and resourceful.",
   },
@@ -320,7 +320,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-daniel-park.jpg",
     voiceId: "N2lVS1w4EtoT3dr4eOWO",
     voiceName: "Callum",
-    voiceTags: ["American accent", "Thoughtful", "Articulate"],
+    voiceTags: ["Intense", "Young", "Transatlantic"],
     personalityPrompt:
       "You are Dr. Daniel Park, a specialist in perfectionism and relationship expectations. You help couples release impossible standards and embrace imperfection with compassion. You are insightful about high-achiever dynamics and gently challenging. Your tone is thoughtful, compassionate, and quietly humorous.",
   },
@@ -337,94 +337,9 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-jay-robinson.jpg",
     voiceId: "pqHfZKP75CvOlQylNhV4",
     voiceName: "Bill",
-    voiceTags: ["American accent", "Warm", "Motivating"],
+    voiceTags: ["Trustworthy", "Middle-aged", "American"],
     personalityPrompt:
       "You are Dr. Jay Robinson, a relationship wellness and prevention specialist. You help couples build resilient relationships through proactive skill-building. You are positive, encouraging, and focused on strengths. Your tone is upbeat, practical, and motivating.",
-  },
-  {
-    id: "dr-rachel-abrams",
-    name: "Dr. Rachel Abrams",
-    title: "Licensed Marriage & Family Therapist",
-    specialty: "Gottman Method Couples Therapy",
-    bio: "Dr. Rachel Abrams is a certified Gottman Method therapist who brings research-backed precision to her work with couples. She helps partners identify the 'Four Horsemen' of relationship breakdown — criticism, contempt, defensiveness, and stonewalling — and replace them with healthier alternatives. Rachel's analytical yet warm approach resonates with couples who want structure and clear actionable steps.",
-    background:
-      "Ph.D. in Family Therapy from Brigham Young University. Gottman Level 3 Certified Therapist. 18+ years working with couples in private practice. Former research assistant at The Gottman Institute in Seattle. Published in the Journal of Marital and Family Therapy.",
-    approach:
-      "I use the Gottman Method's research-backed framework to help couples build Sound Relationship Houses. We focus on strengthening friendship, managing conflict constructively, and creating shared meaning — all grounded in decades of relationship science.",
-    imageUrl: "/images/therapists/dr-rachel-abrams.jpg",
-    voiceId: "FGY2WhTYpPnrIDTdsKH5",
-    voiceName: "Laura",
-    voiceTags: ["American accent", "Warm", "Articulate"],
-    personalityPrompt:
-      "You are Dr. Rachel Abrams, a research-oriented Gottman Method therapist. You are warm but precise, often referencing specific relationship patterns backed by research. You help couples identify destructive cycles and replace them with evidence-based alternatives. Your tone is knowledgeable, encouraging, and structured.",
-  },
-  {
-    id: "dr-hannah-liu",
-    name: "Dr. Hannah Liu",
-    title: "Licensed Psychologist",
-    specialty: "Postpartum & New Parent Conflicts",
-    bio: "Dr. Hannah Liu specializes in helping new parents navigate the seismic shift that comes with having a baby. Sleep deprivation, identity changes, division of labor disputes, and the loss of couple identity are her areas of deep expertise. Hannah helps partners reconnect as a couple even while learning to be parents, blending postpartum mental health support with relationship therapy.",
-    background:
-      "Psy.D. from Alliant International University. Certified Perinatal Mental Health Professional (PMH-C). 9+ years specializing in postpartum relationship dynamics. Former clinical lead at the Center for Postpartum Families. Published on maternal mental health and couple adjustment.",
-    approach:
-      "I help new parents understand that the struggles they face are normal — and navigable. We work on renegotiating roles, expressing needs without resentment, and maintaining your couple bond through the beautiful chaos of early parenthood.",
-    imageUrl: "/images/therapists/dr-hannah-liu.jpg",
-    voiceId: "Xb7hH8MSUJpSbSDYk0k2",
-    voiceName: "Alice",
-    voiceTags: ["British accent", "Nurturing", "Calm"],
-    personalityPrompt:
-      "You are Dr. Hannah Liu, a postpartum and new parent specialist. You normalize the challenges of new parenthood while helping couples maintain their connection. You are deeply empathetic about sleep deprivation and identity shifts. Your tone is warm, validating, and gently practical.",
-  },
-  {
-    id: "dr-lily-chen-wu",
-    name: "Dr. Lily Chen-Wu",
-    title: "Licensed Marriage & Family Therapist",
-    specialty: "In-Law & Extended Family Conflicts",
-    bio: "Dr. Lily Chen-Wu helps couples navigate the often-overlooked but deeply impactful conflicts that arise from in-law relationships and extended family dynamics. From overbearing parents to cultural clashes between families of origin, Lily helps partners present a united front while maintaining important family relationships. She understands the delicate balance between loyalty to your partner and respect for your family.",
-    background:
-      "Ph.D. in Family Therapy from Virginia Tech. 10+ years specializing in in-law dynamics and intergenerational boundary-setting. Research focus on family-of-origin influences on marital satisfaction. Bilingual in English and Mandarin.",
-    approach:
-      "I help couples understand that in-law conflicts are really about boundaries, loyalty, and the transition from family of origin to family of creation. We work on establishing healthy boundaries together, communicating as a united team, and managing extended family expectations with grace.",
-    imageUrl: "/images/therapists/dr-lily-chen-wu.jpg",
-    voiceId: "XrExE9yKIg1WjnnlVkGX",
-    voiceName: "Matilda",
-    voiceTags: ["American accent", "Gentle", "Thoughtful"],
-    personalityPrompt:
-      "You are Dr. Lily Chen-Wu, a specialist in in-law and extended family conflicts. You help couples navigate family-of-origin dynamics and establish united boundaries. You are diplomatic, culturally sensitive, and practical. Your tone is warm, wise, and gently firm when needed.",
-  },
-  {
-    id: "dr-emma-williams",
-    name: "Dr. Emma Williams",
-    title: "Licensed Psychologist",
-    specialty: "Conflict Resolution for Parents",
-    bio: "Dr. Emma Williams helps parents who find their relationship strained by the demands of raising children. From disagreements over discipline styles to feeling like roommates instead of partners, Emma helps parents rediscover their couple identity. She specializes in helping parents communicate about parenting differences without undermining each other, creating a united front that benefits both the relationship and the children.",
-    background:
-      "Ph.D. in Developmental Psychology from the University of Virginia. 11+ years specializing in parenting-related couple conflicts. Former researcher at the Parenting and Family Research Center. Certified in Triple P Positive Parenting and Gottman Method.",
-    approach:
-      "I help parents see that parenting disagreements are often about deeper values and fears. We work on understanding each partner's parenting philosophy, finding common ground, and presenting a united front to children — all while keeping your couple connection strong.",
-    imageUrl: "/images/therapists/dr-emma-williams.jpg",
-    voiceId: "cgSgspJ2msm6clMCkdW9",
-    voiceName: "Jessica",
-    voiceTags: ["American accent", "Calm", "Relatable"],
-    personalityPrompt:
-      "You are Dr. Emma Williams, a parenting-focused couples therapist. You help parents navigate disagreements over discipline, roles, and priorities without losing their couple connection. You are practical, empathetic, and skilled at finding middle ground. Your tone is warm, relatable, and solution-oriented.",
-  },
-  {
-    id: "dr-nina-kowalski",
-    name: "Dr. Nina Kowalski",
-    title: "Licensed Professional Counselor",
-    specialty: "Grief, Loss & Relationship Impact",
-    bio: "Dr. Nina Kowalski helps couples navigate the profound impact that grief and loss have on relationships. Whether mourning the death of a loved one, pregnancy loss, job loss, or the loss of a shared dream, Nina guides partners through grief's unpredictable terrain. She helps couples grieve together rather than apart, turning loss into a source of deeper connection rather than distance.",
-    background:
-      "Ph.D. in Counseling Psychology from Boston College. Certified in Grief Therapy and Bereavement Counseling. 13+ years helping couples navigate loss. Former clinical lead at the Center for Grief and Relationships. Published on disenfranchised grief and couple dynamics.",
-    approach:
-      "I help couples understand that grief affects partners differently — and that's okay. We work on creating space for both partners' grief, communicating needs during the most difficult times, and finding ways to honor loss together rather than letting it drive you apart.",
-    imageUrl: "/images/therapists/dr-nina-kowalski.jpg",
-    voiceId: "hpp4J3VqNfWAUOO0d1Us",
-    voiceName: "Bella",
-    voiceTags: ["American accent", "Tender", "Compassionate"],
-    personalityPrompt:
-      "You are Dr. Nina Kowalski, a grief and loss specialist who helps couples navigate mourning together. You are deeply compassionate, patient with silence, and skilled at holding space for pain. You help partners support each other through loss. Your tone is tender, steady, and gently guiding.",
   },
   {
     id: "dr-fatima-al-rashid",
@@ -439,7 +354,7 @@ export const THERAPIST_PROFILES: TherapistProfile[] = [
     imageUrl: "/images/therapists/dr-fatima-al-rashid.jpg",
     voiceId: "EXAVITQu4vr4xnSDxMaL",
     voiceName: "Sarah",
-    voiceTags: ["American accent", "Warm", "Intuitive"],
+    voiceTags: ["Soft", "Young", "American"],
     personalityPrompt:
       "You are Dr. Fatima Al-Rashid, an advanced Emotionally Focused Therapy practitioner. You are deeply attuned to emotional undercurrents and skilled at helping partners access vulnerable feelings beneath defensive behaviors. You are gentle, persistent, and emotionally present. Your tone is warm, intuitive, and softly encouraging.",
   },

@@ -142,8 +142,8 @@ describe("sessions handler", () => {
       expect(result.statusCode).toBe(200);
       expect(JSON.parse(result.body).text).toBe("Thank you for sharing that.");
       expect(mockGetTherapistResponse).toHaveBeenCalledTimes(1);
-      // 2 puts for memory (session + user level)
-      expect(mockSend).toHaveBeenCalledTimes(5);
+      // 2 puts for memory (session + user level) + 2 updates for incremental billing
+      expect(mockSend).toHaveBeenCalledTimes(7);
     });
 
     it("returns 400 for unknown therapist", async () => {
@@ -178,7 +178,9 @@ describe("sessions handler", () => {
       mockSend
         .mockResolvedValueOnce({ Item: { userId: "user-123" } })
         .mockResolvedValueOnce({ Items: [] })
-        .mockResolvedValueOnce({ Items: [] });
+        .mockResolvedValueOnce({ Items: [] })
+        .mockResolvedValueOnce({}) // update credits (incremental billing)
+        .mockResolvedValueOnce({}); // update session minutesUsed
 
       mockGetTherapistResponse.mockResolvedValue({
         text: "Tell me more.",
@@ -197,8 +199,8 @@ describe("sessions handler", () => {
       });
 
       expect(result.statusCode).toBe(200);
-      // Only 3 sends: get session + 2 queries for memories (no puts)
-      expect(mockSend).toHaveBeenCalledTimes(3);
+      // 3 sends: get session + 2 queries for memories + 2 updates for incremental billing (no memory puts)
+      expect(mockSend).toHaveBeenCalledTimes(5);
     });
   });
 

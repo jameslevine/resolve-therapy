@@ -348,6 +348,35 @@ async function handleRespond(event: APIGatewayProxyEvent): Promise<APIGatewayPro
   );
   const userId: string | undefined = sessionResult.Item?.userId;
 
+  // Deduct 1 minute per response (incremental billing)
+  if (userId) {
+    try {
+      await ddb.send(
+        new UpdateCommand({
+          TableName: TABLE,
+          Key: { PK: Keys.user(userId), SK: Keys.CREDITS },
+          UpdateExpression: "SET balance = balance - :one, updatedAt = :now",
+          ConditionExpression: "balance >= :one",
+          ExpressionAttributeValues: { ":one": 1, ":now": new Date().toISOString() },
+        }),
+      );
+      // Track minutes used on the session
+      await ddb.send(
+        new UpdateCommand({
+          TableName: TABLE,
+          Key: { PK: Keys.session(sessionId), SK: Keys.META },
+          UpdateExpression: "SET minutesUsed = if_not_exists(minutesUsed, :zero) + :one",
+          ExpressionAttributeValues: { ":one": 1, ":zero": 0 },
+        }),
+      );
+    } catch (err) {
+      if ((err as { name?: string }).name === "ConditionalCheckFailedException") {
+        return error(403, "Insufficient minutes");
+      }
+      throw err;
+    }
+  }
+
   // Fetch session-level memories
   const sessionMemResult = await ddb.send(
     new QueryCommand({
@@ -452,34 +481,10 @@ async function handleEndSession(event: APIGatewayProxyEvent): Promise<APIGateway
 
   const session = sessionResult.Item as SessionItem;
 
-  // Calculate and deduct minutes used
+  // Minutes are deducted incrementally per response in handleRespond.
+  // Here we just finalize the session.
   const endedAt = new Date().toISOString();
-  const durationMs = new Date(endedAt).getTime() - new Date(session.createdAt).getTime();
-  const minutesUsed = Math.max(1, Math.ceil(durationMs / 60000));
-
-  if (session.userId) {
-    try {
-      await ddb.send(
-        new UpdateCommand({
-          TableName: TABLE,
-          Key: { PK: Keys.user(session.userId), SK: Keys.CREDITS },
-          UpdateExpression: "SET balance = balance - :mins, updatedAt = :now",
-          ConditionExpression: "balance >= :mins",
-          ExpressionAttributeValues: { ":mins": minutesUsed, ":now": endedAt },
-        }),
-      );
-    } catch {
-      // If not enough balance, deduct whatever is left
-      await ddb.send(
-        new UpdateCommand({
-          TableName: TABLE,
-          Key: { PK: Keys.user(session.userId), SK: Keys.CREDITS },
-          UpdateExpression: "SET balance = :zero, updatedAt = :now",
-          ExpressionAttributeValues: { ":zero": 0, ":now": endedAt },
-        }),
-      );
-    }
-  }
+  const minutesUsed = (session.minutesUsed as number) || 0;
 
   // Save transcript if provided
   if (transcript && transcript.length > 0) {

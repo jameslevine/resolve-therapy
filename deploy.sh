@@ -37,6 +37,26 @@ if [ -f .env ]; then
   set +a
 fi
 
+# Step 0: Get existing CloudFront URL (if stack already exists)
+EXISTING_CF_URL=""
+EXISTING_OUTPUTS=$(aws cloudformation describe-stacks \
+  --region "$REGION" \
+  --stack-name "$STACK_NAME" \
+  --query "Stacks[0].Outputs" \
+  --output json 2>/dev/null || echo "[]")
+if [ "$EXISTING_OUTPUTS" != "[]" ]; then
+  EXISTING_CF_URL=$(echo "$EXISTING_OUTPUTS" | python3 -c "
+import sys, json
+outputs = json.load(sys.stdin)
+for o in outputs:
+    if o['OutputKey'] == 'CloudFrontUrl':
+        url = o['OutputValue'].replace('https://','').replace('http://','')
+        print('https://' + url)
+        break
+" 2>/dev/null || echo "")
+fi
+log "Existing CloudFront URL: ${EXISTING_CF_URL:-'(first deploy)'}"
+
 # Step 1: Deploy CloudFormation stack
 log "Deploying CloudFormation stack..."
 aws cloudformation deploy \
@@ -53,6 +73,7 @@ aws cloudformation deploy \
     SessionPriceCents="${SESSION_PRICE_CENTS:-4900}" \
     BedrockModelId="${BEDROCK_MODEL_ID:-anthropic.claude-sonnet-4-6}" \
     TranscribeBucket="resolve-therapy-${ENV}-frontend" \
+    FrontendUrl="${EXISTING_CF_URL}" \
   --no-fail-on-empty-changeset
 
 # Step 2: Get stack outputs

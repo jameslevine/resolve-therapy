@@ -4,6 +4,9 @@ import { useTranslation } from "react-i18next";
 import { ArrowRight, Play, Square } from "lucide-react";
 import type { TherapistProfile } from "../../types";
 
+// Shared across all TherapistCard instances to stop other previews
+let currentlyPlaying: { audio: HTMLAudioElement; stop: () => void } | null = null;
+
 interface TherapistCardProps {
   therapist: TherapistProfile;
 }
@@ -21,21 +24,31 @@ export default function TherapistCard({ therapist }: TherapistCardProps) {
       if (playing) {
         audioRef.current?.pause();
         audioRef.current = null;
+        currentlyPlaying = null;
         setPlaying(false);
         return;
+      }
+
+      // Stop any other playing preview
+      if (currentlyPlaying) {
+        currentlyPlaying.stop();
       }
 
       const audio = new Audio(`/audio/therapists/${therapist.id}.mp3`);
       audioRef.current = audio;
       setPlaying(true);
-      audio.onended = () => {
+
+      const stop = () => {
+        audio.pause();
         audioRef.current = null;
         setPlaying(false);
+        currentlyPlaying = null;
       };
-      audio.onerror = () => {
-        audioRef.current = null;
-        setPlaying(false);
-      };
+
+      currentlyPlaying = { audio, stop };
+
+      audio.onended = stop;
+      audio.onerror = stop;
       audio.play();
     },
     [playing, therapist.id],
