@@ -47,13 +47,14 @@ jobs:
 
       - name: Upload coverage reports
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: coverage-reports
           path: |
             coverage/
             lambda/coverage/
-          retention-days: 7
+          retention-days: 3
 
   build:
     name: Build
@@ -85,6 +86,7 @@ jobs:
           VITE_COGNITO_CLIENT_ID: placeholder
 
       - name: Upload frontend artifact
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
@@ -92,6 +94,7 @@ jobs:
           retention-days: 1
 
       - name: Upload Lambda artifact
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: lambda-dist
