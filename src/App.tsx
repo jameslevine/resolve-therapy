@@ -5,6 +5,8 @@ import { RTL_LANGUAGES } from "./i18n";
 import { useAuthStore } from "./store/auth";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
+import BetaBanner from "./components/layout/BetaBanner";
+import FeedbackButton from "./components/FeedbackButton";
 import ProtectedRoute from "./components/ProtectedRoute";
 import HomePage from "./pages/Home";
 import AboutPage from "./pages/About";
@@ -24,6 +26,7 @@ import NewSessionPage from "./pages/NewSession";
 import SessionDetailPage from "./pages/SessionDetail";
 import AccountPage from "./pages/Account";
 import ProgressPage from "./pages/Progress";
+import AffiliatePage from "./pages/Affiliate";
 
 export default function App() {
   const { i18n } = useTranslation();
@@ -43,6 +46,7 @@ export default function App() {
 
   return (
     <>
+      <BetaBanner />
       <Navbar />
       <main className="min-h-screen pt-16 bg-white dark:bg-stone-900 dark:text-stone-100">
         <Routes>
@@ -106,6 +110,14 @@ export default function App() {
             }
           />
           <Route
+            path="/affiliate"
+            element={
+              <ProtectedRoute>
+                <AffiliatePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/account"
             element={
               <ProtectedRoute>
@@ -116,6 +128,7 @@ export default function App() {
         </Routes>
       </main>
       {!isSessionPage && <Footer />}
+      {!isSessionPage && <FeedbackButton />}
     </>
   );
 }

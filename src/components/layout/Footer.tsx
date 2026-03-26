@@ -10,6 +10,7 @@ export default function Footer() {
     { label: t("nav.therapists"), to: "/therapists" },
     { label: t("nav.pricing"), to: "/pricing" },
     { label: t("footer.dashboard"), to: "/dashboard" },
+    { label: t("affiliate.navLabel"), to: "/affiliate" },
   ];
 
   const companyLinks = [
@@ -48,6 +49,9 @@ export default function Footer() {
               </div>
               <span className="text-xl font-bold text-white">
                 Together<span className="text-rose-500">Therapy</span>
+              </span>
+              <span className="rounded-full bg-rose-500/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-rose-400">
+                {t("beta.tag")}
               </span>
             </Link>
             <p className="mt-4 text-sm leading-relaxed text-stone-400">{t("footer.tagline")}</p>

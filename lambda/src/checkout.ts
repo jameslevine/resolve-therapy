@@ -1,7 +1,7 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import Stripe from "stripe";
 import crypto from "crypto";
-import { ddb, TABLE, PutCommand, GetCommand, UpdateCommand } from "./lib/dynamo";
+import { ddb, TABLE, PutCommand, GetCommand, UpdateCommand, QueryCommand } from "./lib/dynamo";
 import { ok, error, options } from "./lib/response";
 import { loggerFromEvent, Logger } from "./lib/logger";
 import { getAuthUserId } from "./lib/auth";
@@ -48,6 +48,21 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     if (path.endsWith("/balance") && method === "GET") {
       return await handleGetBalance(authUserId);
     }
+
+    // Affiliate routes
+    if (path.endsWith("/affiliate") && method === "GET") {
+      return await handleGetAffiliate(authUserId);
+    }
+    if (path.endsWith("/affiliate") && method === "POST") {
+      return await handleCreateAffiliate(authUserId);
+    }
+    if (path.endsWith("/affiliate/payout") && method === "POST") {
+      return await handleRequestPayout(authUserId);
+    }
+    if (path.endsWith("/affiliate/apply") && method === "POST") {
+      return await handleApplyReferral(event, authUserId);
+    }
+
     return error(404, "Not found");
   } catch (err) {
     log.error("Checkout error", { error: (err as Error).message });
@@ -140,7 +155,7 @@ async function handleWebhook(event: APIGatewayProxyEvent): Promise<APIGatewayPro
 }
 
 async function fulfillCredits(metadata: Record<string, string>): Promise<void> {
-  const { orderId, userId, credits } = metadata;
+  const { orderId, userId, credits, packageId } = metadata;
   const creditCount = parseInt(credits);
 
   // Idempotency: only fulfill if order is not already fulfilled
@@ -180,6 +195,67 @@ async function fulfillCredits(metadata: Record<string, string>): Promise<void> {
   } catch (err) {
     log.error("Failed to add credits", { error: (err as Error).message });
     throw err;
+  }
+
+  // Credit affiliate commission if user was referred
+  await creditAffiliateCommission(userId, packageId);
+}
+
+async function creditAffiliateCommission(userId: string, packageId: string): Promise<void> {
+  try {
+    const userCredits = await ddb.send(
+      new GetCommand({
+        TableName: TABLE,
+        Key: { PK: Keys.user(userId), SK: Keys.CREDITS },
+      }),
+    );
+
+    const referredBy = userCredits.Item?.referredBy as string | undefined;
+    if (!referredBy) return;
+
+    const pkg = CREDIT_PACKAGES[packageId];
+    if (!pkg) return;
+
+    const commission = Math.floor(pkg.priceUSD * COMMISSION_RATE);
+    if (commission <= 0) return;
+
+    // Get affiliate's referral code to update signup record
+    const affiliate = await ddb.send(
+      new GetCommand({
+        TableName: TABLE,
+        Key: { PK: Keys.user(referredBy), SK: Keys.AFFILIATE },
+      }),
+    );
+
+    if (!affiliate.Item) return;
+
+    const referralCode = affiliate.Item.referralCode as string;
+
+    // Update affiliate totals
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: Keys.user(referredBy), SK: Keys.AFFILIATE },
+        UpdateExpression:
+          "SET totalEarnings = if_not_exists(totalEarnings, :zero) + :commission, pendingPayout = if_not_exists(pendingPayout, :zero) + :commission",
+        ExpressionAttributeValues: { ":commission": commission, ":zero": 0 },
+      }),
+    );
+
+    // Update signup record earnings
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: Keys.referral(referralCode), SK: Keys.signup(userId) },
+        UpdateExpression: "SET earnings = if_not_exists(earnings, :zero) + :commission",
+        ExpressionAttributeValues: { ":commission": commission, ":zero": 0 },
+      }),
+    );
+
+    log.info("Affiliate commission credited", { affiliateUserId: referredBy, commission });
+  } catch (err) {
+    log.error("Failed to credit affiliate commission", { error: (err as Error).message });
+    // Don't throw — affiliate commission failure shouldn't block credit fulfillment
   }
 }
 
@@ -223,4 +299,204 @@ async function handleGetBalance(userId: string): Promise<APIGatewayProxyResult> 
   );
 
   return ok({ balance: result.Item?.balance || 0 });
+}
+
+const COMMISSION_RATE = 0.2; // 20%
+const MIN_PAYOUT_CENTS = 1000; // $10
+
+function generateReferralCode(): string {
+  return crypto.randomBytes(6).toString("hex");
+}
+
+async function handleGetAffiliate(userId: string): Promise<APIGatewayProxyResult> {
+  const result = await ddb.send(
+    new GetCommand({
+      TableName: TABLE,
+      Key: { PK: Keys.user(userId), SK: Keys.AFFILIATE },
+    }),
+  );
+
+  if (!result.Item) {
+    return ok({ enrolled: false });
+  }
+
+  // Fetch signup records (no PII — just dates and earnings)
+  const signups = await ddb.send(
+    new QueryCommand({
+      TableName: TABLE,
+      KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
+      ExpressionAttributeValues: {
+        ":pk": Keys.referral(result.Item.referralCode as string),
+        ":sk": "SIGNUP#",
+      },
+      ScanIndexForward: false,
+    }),
+  );
+
+  const referrals = (signups.Items || []).map((item) => ({
+    joinedAt: item.createdAt,
+    earnings: item.earnings || 0,
+  }));
+
+  return ok({
+    enrolled: true,
+    referralCode: result.Item.referralCode,
+    totalEarnings: result.Item.totalEarnings || 0,
+    pendingPayout: result.Item.pendingPayout || 0,
+    totalReferrals: result.Item.totalReferrals || 0,
+    referrals,
+  });
+}
+
+async function handleCreateAffiliate(userId: string): Promise<APIGatewayProxyResult> {
+  // Check if already enrolled
+  const existing = await ddb.send(
+    new GetCommand({
+      TableName: TABLE,
+      Key: { PK: Keys.user(userId), SK: Keys.AFFILIATE },
+    }),
+  );
+
+  if (existing.Item) {
+    return ok({ referralCode: existing.Item.referralCode });
+  }
+
+  const referralCode = generateReferralCode();
+  const now = new Date().toISOString();
+
+  // Create affiliate profile
+  await ddb.send(
+    new PutCommand({
+      TableName: TABLE,
+      Item: {
+        PK: Keys.user(userId),
+        SK: Keys.AFFILIATE,
+        referralCode,
+        totalEarnings: 0,
+        pendingPayout: 0,
+        totalReferrals: 0,
+        createdAt: now,
+      },
+    }),
+  );
+
+  // Create referral code lookup
+  await ddb.send(
+    new PutCommand({
+      TableName: TABLE,
+      Item: {
+        PK: Keys.referral(referralCode),
+        SK: Keys.META,
+        userId,
+        createdAt: now,
+      },
+    }),
+  );
+
+  return ok({ referralCode });
+}
+
+async function handleApplyReferral(
+  event: APIGatewayProxyEvent,
+  userId: string,
+): Promise<APIGatewayProxyResult> {
+  const { referralCode } = JSON.parse(event.body || "{}");
+  if (!referralCode) return error(400, "referralCode is required");
+
+  // Look up referral code
+  const ref = await ddb.send(
+    new GetCommand({
+      TableName: TABLE,
+      Key: { PK: Keys.referral(referralCode), SK: Keys.META },
+    }),
+  );
+
+  if (!ref.Item) return error(404, "Invalid referral code");
+
+  const affiliateUserId = ref.Item.userId as string;
+  if (affiliateUserId === userId) return error(400, "Cannot refer yourself");
+
+  // Check if user already has a referrer
+  const credits = await ddb.send(
+    new GetCommand({
+      TableName: TABLE,
+      Key: { PK: Keys.user(userId), SK: Keys.CREDITS },
+    }),
+  );
+
+  if (credits.Item?.referredBy) {
+    return ok({ applied: false, reason: "already_referred" });
+  }
+
+  // Mark user as referred
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: Keys.user(userId), SK: Keys.CREDITS },
+      UpdateExpression:
+        "SET referredBy = :ref, balance = if_not_exists(balance, :zero), updatedAt = :now",
+      ExpressionAttributeValues: {
+        ":ref": affiliateUserId,
+        ":zero": 0,
+        ":now": new Date().toISOString(),
+      },
+    }),
+  );
+
+  // Record the signup under the referral code
+  await ddb.send(
+    new PutCommand({
+      TableName: TABLE,
+      Item: {
+        PK: Keys.referral(referralCode),
+        SK: Keys.signup(userId),
+        earnings: 0,
+        createdAt: new Date().toISOString(),
+      },
+    }),
+  );
+
+  // Increment referral count
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: Keys.user(affiliateUserId), SK: Keys.AFFILIATE },
+      UpdateExpression: "SET totalReferrals = if_not_exists(totalReferrals, :zero) + :one",
+      ExpressionAttributeValues: { ":one": 1, ":zero": 0 },
+    }),
+  );
+
+  return ok({ applied: true });
+}
+
+async function handleRequestPayout(userId: string): Promise<APIGatewayProxyResult> {
+  const result = await ddb.send(
+    new GetCommand({
+      TableName: TABLE,
+      Key: { PK: Keys.user(userId), SK: Keys.AFFILIATE },
+    }),
+  );
+
+  if (!result.Item) return error(404, "Not enrolled in affiliate programme");
+
+  const pending = (result.Item.pendingPayout as number) || 0;
+  if (pending < MIN_PAYOUT_CENTS) {
+    return error(400, `Minimum payout is $${(MIN_PAYOUT_CENTS / 100).toFixed(2)}`);
+  }
+
+  // Reset pending payout and log payout request
+  await ddb.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { PK: Keys.user(userId), SK: Keys.AFFILIATE },
+      UpdateExpression: "SET pendingPayout = :zero, lastPayoutRequestedAt = :now",
+      ExpressionAttributeValues: {
+        ":zero": 0,
+        ":now": new Date().toISOString(),
+      },
+    }),
+  );
+
+  log.info("Payout requested", { userId, amount: pending });
+  return ok({ requested: true, amount: pending });
 }

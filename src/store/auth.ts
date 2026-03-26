@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { apiFetch } from "@/lib/api";
 import {
   signIn as cognitoSignIn,
   signUp as cognitoSignUp,
@@ -79,6 +80,16 @@ export const useAuthStore = create<AuthState>((set) => ({
         },
         loading: false,
       });
+
+      // Apply referral code if stored during registration
+      const ref = localStorage.getItem("referralCode");
+      if (ref) {
+        localStorage.removeItem("referralCode");
+        apiFetch("/checkout/affiliate/apply", {
+          method: "POST",
+          body: JSON.stringify({ referralCode: ref }),
+        }).catch(() => {});
+      }
     } catch (err) {
       set({ loading: false });
       throw err;

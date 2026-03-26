@@ -125,6 +125,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       return await handleGetSession(idMatch[1], authUserId);
     }
 
+    // POST /sessions/feedback
+    if (path.endsWith("/feedback") && method === "POST") {
+      return await handleSubmitFeedback(event, authUserId);
+    }
+
     // GET /sessions?userId=xxx
     if (method === "GET") {
       return await handleListSessions(event);
@@ -653,4 +658,51 @@ Be specific and personalized based on the transcript content. Use plain language
     log.warn("Failed to parse insights JSON", { text: text.substring(0, 200) });
     return null;
   }
+}
+
+async function handleSubmitFeedback(
+  event: APIGatewayProxyEvent,
+  userId: string,
+): Promise<APIGatewayProxyResult> {
+  const body = JSON.parse(event.body || "{}");
+  const { type, message, rating, sessionId } = body as {
+    type?: string;
+    message?: string;
+    rating?: number;
+    sessionId?: string;
+  };
+
+  if (!type || !message) return error(400, "type and message are required");
+
+  const validTypes = ["bug", "feedback", "feature", "session"];
+  if (!validTypes.includes(type)) return error(400, "Invalid feedback type");
+
+  if (rating !== undefined && (rating < 1 || rating > 5)) {
+    return error(400, "Rating must be between 1 and 5");
+  }
+
+  const id = randomUUID();
+  const now = new Date().toISOString();
+
+  await ddb.send(
+    new PutCommand({
+      TableName: TABLE,
+      Item: {
+        PK: Keys.feedback(id),
+        SK: Keys.META,
+        GSI1PK: Keys.gsi1UserFeedback(userId),
+        GSI1SK: Keys.gsi1FeedbackTimestamp(now),
+        id,
+        userId,
+        type,
+        message,
+        ...(rating !== undefined && { rating }),
+        ...(sessionId && { sessionId }),
+        createdAt: now,
+      },
+    }),
+  );
+
+  log.info("Feedback submitted", { id, type, userId });
+  return ok({ id, submitted: true });
 }

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Mic, MicOff, Phone, Volume2, VolumeX, Clock, X, AlertCircle } from "lucide-react";
+import { Mic, MicOff, Phone, Volume2, VolumeX, Clock, X, AlertCircle, Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { TherapistProfile, TranscriptEntry, ParticipantInfo } from "@/types";
 import { apiFetch } from "@/lib/api";
@@ -36,6 +36,10 @@ export default function SessionInterface({
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [interimText, setInterimText] = useState("");
   const [sessionError, setSessionError] = useState<string | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -274,10 +278,10 @@ export default function SessionInterface({
         }),
       });
     } catch {
-      // Session end save failed — user is redirecting to dashboard anyway
+      // Session end save failed — show feedback anyway
     }
 
-    window.location.href = "/dashboard";
+    setShowFeedback(true);
   }, [voiceStop, sessionId]);
 
   useEffect(() => {
@@ -474,6 +478,80 @@ export default function SessionInterface({
           </button>
         </div>
       </div>
+
+      {/* Post-Session Feedback Modal */}
+      {showFeedback && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="mb-2 text-lg font-semibold text-stone-800">
+              {t("feedback.sessionFeedback")}
+            </h3>
+            <p className="mb-5 text-sm text-stone-500">{t("feedback.sessionFeedbackDesc")}</p>
+
+            <div className="mb-4 flex justify-center gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => setFeedbackRating(star === feedbackRating ? 0 : star)}
+                  className="transition-transform hover:scale-110"
+                >
+                  <Star
+                    className={`h-8 w-8 ${
+                      star <= feedbackRating ? "fill-amber-400 text-amber-400" : "text-stone-300"
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+
+            <textarea
+              value={feedbackMessage}
+              onChange={(e) => setFeedbackMessage(e.target.value)}
+              placeholder={t("feedback.messagePlaceholder")}
+              rows={3}
+              className="mb-4 w-full rounded-xl border border-stone-200 px-4 py-3 text-sm text-stone-700 placeholder-stone-400 focus:border-rose-300 focus:outline-none focus:ring-1 focus:ring-rose-300"
+            />
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  window.location.href = "/dashboard";
+                }}
+                className="flex-1 rounded-xl border border-stone-200 px-4 py-2.5 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-50"
+              >
+                {t("feedback.skipRating")}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!feedbackRating && !feedbackMessage.trim()) {
+                    window.location.href = "/dashboard";
+                    return;
+                  }
+                  setFeedbackSubmitting(true);
+                  try {
+                    await apiFetch("/sessions/feedback", {
+                      method: "POST",
+                      body: JSON.stringify({
+                        type: "session",
+                        message: feedbackMessage.trim() || `Rated ${feedbackRating}/5`,
+                        ...(feedbackRating > 0 && { rating: feedbackRating }),
+                        sessionId,
+                      }),
+                    });
+                  } catch {
+                    // silent
+                  }
+                  window.location.href = "/dashboard";
+                }}
+                disabled={feedbackSubmitting}
+                className="flex-1 rounded-xl bg-rose-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-rose-600 disabled:opacity-50"
+              >
+                {feedbackSubmitting ? t("feedback.submitting") : t("feedback.submit")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* End Session Modal */}
       {showEndModal && (

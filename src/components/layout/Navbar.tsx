@@ -10,6 +10,7 @@ import {
   Plus,
   Settings,
   TrendingUp,
+  Share2,
   Sun,
   Moon,
 } from "lucide-react";
@@ -80,6 +81,9 @@ export default function Navbar() {
             </div>
             <span className="text-xl font-bold text-stone-900 dark:text-white">
               Together<span className="text-rose-500">Therapy</span>
+            </span>
+            <span className="rounded-full bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-rose-600">
+              {t("beta.tag")}
             </span>
           </Link>
 
@@ -187,6 +191,14 @@ export default function Navbar() {
                           {t("progress.title")}
                         </Link>
                         <Link
+                          to="/affiliate"
+                          onClick={() => setAccountOpen(false)}
+                          className="flex w-full items-center gap-2 px-4 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
+                        >
+                          <Share2 className="h-4 w-4" />
+                          {t("affiliate.navLabel")}
+                        </Link>
+                        <Link
                           to="/account"
                           onClick={() => setAccountOpen(false)}
                           className="flex w-full items-center gap-2 px-4 py-2 text-sm text-stone-700 hover:bg-stone-50 transition-colors"
@@ -271,6 +283,13 @@ export default function Navbar() {
                   className="block rounded-md px-3 py-2 text-base font-medium text-stone-700 hover:bg-rose-50 hover:text-rose-500 transition-colors"
                 >
                   {t("progress.title")}
+                </Link>
+                <Link
+                  to="/affiliate"
+                  onClick={() => setMobileOpen(false)}
+                  className="block rounded-md px-3 py-2 text-base font-medium text-stone-700 hover:bg-rose-50 hover:text-rose-500 transition-colors"
+                >
+                  {t("affiliate.navLabel")}
                 </Link>
                 <Link
                   to="/account"
