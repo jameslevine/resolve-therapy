@@ -86,7 +86,7 @@ jobs:
 
       - name: Update Lambda FRONTEND_URL
         run: |
-          CF_URL="https://${{ steps.stack.outputs.cf_url }}"
+          CF_URL="${{ steps.stack.outputs.cf_url }}"
           ENV=${{ inputs.environment }}
           for FUNC in resolve-therapy-${ENV}-checkout resolve-therapy-${ENV}-sessions resolve-therapy-${ENV}-voice; do
             CURRENT=$(aws lambda get-function-configuration \
@@ -144,5 +144,5 @@ jobs:
       - name: Summary
         run: |
           echo "### ${{ inputs.environment }} Deployment Complete" >> $GITHUB_STEP_SUMMARY
-          echo "- **Frontend**: https://${{ steps.stack.outputs.cf_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend**: ${{ steps.stack.outputs.cf_url }}" >> $GITHUB_STEP_SUMMARY
           echo "- **API**: ${{ steps.stack.outputs.api_url }}" >> $GITHUB_STEP_SUMMARY
