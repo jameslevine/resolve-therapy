@@ -536,8 +536,26 @@ async function handleConnectOnboard(userId: string): Promise<APIGatewayProxyResu
 
   if (!result.Item) return error(404, "Not enrolled in affiliate programme");
 
-  const stripeAccountId = result.Item.stripeAccountId as string | undefined;
-  if (!stripeAccountId) return error(400, "No Stripe account found");
+  let stripeAccountId = result.Item.stripeAccountId as string | undefined;
+
+  // Legacy affiliates enrolled before Stripe Connect — create account now
+  if (!stripeAccountId) {
+    const account = await stripe.accounts.create({
+      type: "express",
+      capabilities: { transfers: { requested: true } },
+      metadata: { userId, referralCode: result.Item.referralCode as string },
+    });
+    stripeAccountId = account.id;
+
+    await ddb.send(
+      new UpdateCommand({
+        TableName: TABLE,
+        Key: { PK: Keys.user(userId), SK: Keys.AFFILIATE },
+        UpdateExpression: "SET stripeAccountId = :sid, stripeOnboarded = :val",
+        ExpressionAttributeValues: { ":sid": account.id, ":val": false },
+      }),
+    );
+  }
 
   const accountLink = await stripe.accountLinks.create({
     account: stripeAccountId,
