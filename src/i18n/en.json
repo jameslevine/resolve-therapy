@@ -485,13 +485,20 @@
     "totalEarnings": "Total Earnings",
     "pendingPayout": "Pending Payout",
     "requestPayout": "Request Payout",
-    "payoutRequested": "Payout request submitted! We'll process it within 5 business days.",
-    "payoutMinimum": "Minimum payout: $10.00",
+    "payoutSuccess": "Payout sent to your Stripe account! Funds typically arrive in 2-3 business days.",
+    "payoutFailed": "Failed to process payout. Please try again.",
+    "payoutMinimum": "Minimum payout: $10.00. Payouts are sent directly to your Stripe account.",
     "noReferrals": "No referrals yet. Share your link to get started!",
     "commissionRate": "20% commission",
     "navLabel": "Refer & Earn",
     "joinedVia": "Signed up",
-    "earned": "Earned"
+    "earned": "Earned",
+    "payoutAccount": "Payout Account",
+    "stripeConnected": "Stripe account connected — payouts are enabled.",
+    "stripeNotConnected": "Complete Stripe setup to receive payouts.",
+    "completeStripeSetup": "Set Up Stripe Account",
+    "completeStripeFirst": "Complete Stripe onboarding to enable payouts.",
+    "stripeOnboardingNote": "You'll be redirected to Stripe to set up your payout account."
   },
   "currency": {
     "symbol": "$",

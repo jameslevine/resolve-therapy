@@ -62,6 +62,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     if (path.endsWith("/affiliate/apply") && method === "POST") {
       return await handleApplyReferral(event, authUserId);
     }
+    if (path.endsWith("/affiliate/connect/onboard") && method === "GET") {
+      return await handleConnectOnboard(authUserId);
+    }
 
     return error(404, "Not found");
   } catch (err) {
@@ -320,6 +323,29 @@ async function handleGetAffiliate(userId: string): Promise<APIGatewayProxyResult
     return ok({ enrolled: false });
   }
 
+  // Check Stripe Connect onboarding status if not yet marked as onboarded
+  let stripeOnboarded = result.Item.stripeOnboarded as boolean;
+  const stripeAccountId = result.Item.stripeAccountId as string | undefined;
+
+  if (!stripeOnboarded && stripeAccountId) {
+    try {
+      const account = await stripe.accounts.retrieve(stripeAccountId);
+      if (account.charges_enabled && account.payouts_enabled) {
+        stripeOnboarded = true;
+        await ddb.send(
+          new UpdateCommand({
+            TableName: TABLE,
+            Key: { PK: Keys.user(userId), SK: Keys.AFFILIATE },
+            UpdateExpression: "SET stripeOnboarded = :val",
+            ExpressionAttributeValues: { ":val": true },
+          }),
+        );
+      }
+    } catch (err) {
+      log.error("Failed to check Stripe account status", { error: (err as Error).message });
+    }
+  }
+
   // Fetch signup records (no PII — just dates and earnings)
   const signups = await ddb.send(
     new QueryCommand({
@@ -341,6 +367,8 @@ async function handleGetAffiliate(userId: string): Promise<APIGatewayProxyResult
   return ok({
     enrolled: true,
     referralCode: result.Item.referralCode,
+    stripeAccountId: stripeAccountId || null,
+    stripeOnboarded,
     totalEarnings: result.Item.totalEarnings || 0,
     pendingPayout: result.Item.pendingPayout || 0,
     totalReferrals: result.Item.totalReferrals || 0,
@@ -358,11 +386,30 @@ async function handleCreateAffiliate(userId: string): Promise<APIGatewayProxyRes
   );
 
   if (existing.Item) {
+    // Already enrolled — return onboarding link if not yet onboarded
+    if (!existing.Item.stripeOnboarded && existing.Item.stripeAccountId) {
+      const accountLink = await stripe.accountLinks.create({
+        account: existing.Item.stripeAccountId as string,
+        refresh_url: `${process.env.FRONTEND_URL}/affiliate?connect=refresh`,
+        return_url: `${process.env.FRONTEND_URL}/affiliate?connect=return`,
+        type: "account_onboarding",
+      });
+      return ok({ referralCode: existing.Item.referralCode, onboardingUrl: accountLink.url });
+    }
     return ok({ referralCode: existing.Item.referralCode });
   }
 
   const referralCode = generateReferralCode();
   const now = new Date().toISOString();
+
+  // Create Stripe Connect Express account
+  const account = await stripe.accounts.create({
+    type: "express",
+    capabilities: {
+      transfers: { requested: true },
+    },
+    metadata: { userId, referralCode },
+  });
 
   // Create affiliate profile
   await ddb.send(
@@ -372,6 +419,8 @@ async function handleCreateAffiliate(userId: string): Promise<APIGatewayProxyRes
         PK: Keys.user(userId),
         SK: Keys.AFFILIATE,
         referralCode,
+        stripeAccountId: account.id,
+        stripeOnboarded: false,
         totalEarnings: 0,
         pendingPayout: 0,
         totalReferrals: 0,
@@ -393,7 +442,15 @@ async function handleCreateAffiliate(userId: string): Promise<APIGatewayProxyRes
     }),
   );
 
-  return ok({ referralCode });
+  // Generate onboarding link
+  const accountLink = await stripe.accountLinks.create({
+    account: account.id,
+    refresh_url: `${process.env.FRONTEND_URL}/affiliate?connect=refresh`,
+    return_url: `${process.env.FRONTEND_URL}/affiliate?connect=return`,
+    type: "account_onboarding",
+  });
+
+  return ok({ referralCode, onboardingUrl: accountLink.url });
 }
 
 async function handleApplyReferral(
@@ -469,6 +526,29 @@ async function handleApplyReferral(
   return ok({ applied: true });
 }
 
+async function handleConnectOnboard(userId: string): Promise<APIGatewayProxyResult> {
+  const result = await ddb.send(
+    new GetCommand({
+      TableName: TABLE,
+      Key: { PK: Keys.user(userId), SK: Keys.AFFILIATE },
+    }),
+  );
+
+  if (!result.Item) return error(404, "Not enrolled in affiliate programme");
+
+  const stripeAccountId = result.Item.stripeAccountId as string | undefined;
+  if (!stripeAccountId) return error(400, "No Stripe account found");
+
+  const accountLink = await stripe.accountLinks.create({
+    account: stripeAccountId,
+    refresh_url: `${process.env.FRONTEND_URL}/affiliate?connect=refresh`,
+    return_url: `${process.env.FRONTEND_URL}/affiliate?connect=return`,
+    type: "account_onboarding",
+  });
+
+  return ok({ onboardingUrl: accountLink.url });
+}
+
 async function handleRequestPayout(userId: string): Promise<APIGatewayProxyResult> {
   const result = await ddb.send(
     new GetCommand({
@@ -479,24 +559,45 @@ async function handleRequestPayout(userId: string): Promise<APIGatewayProxyResul
 
   if (!result.Item) return error(404, "Not enrolled in affiliate programme");
 
+  const stripeAccountId = result.Item.stripeAccountId as string | undefined;
+  if (!stripeAccountId) return error(400, "Stripe Connect account not set up");
+
+  // Verify account is fully onboarded
+  const account = await stripe.accounts.retrieve(stripeAccountId);
+  if (!account.charges_enabled || !account.payouts_enabled) {
+    return error(400, "Please complete Stripe onboarding before requesting a payout");
+  }
+
   const pending = (result.Item.pendingPayout as number) || 0;
   if (pending < MIN_PAYOUT_CENTS) {
     return error(400, `Minimum payout is $${(MIN_PAYOUT_CENTS / 100).toFixed(2)}`);
   }
 
-  // Reset pending payout and log payout request
+  // Create Stripe Transfer to connected account
+  const transfer = await stripe.transfers.create({
+    amount: pending,
+    currency: "usd",
+    destination: stripeAccountId,
+    description: `Affiliate payout for user ${userId}`,
+    metadata: { userId, type: "affiliate_payout" },
+  });
+
+  // Reset pending payout and record transfer
   await ddb.send(
     new UpdateCommand({
       TableName: TABLE,
       Key: { PK: Keys.user(userId), SK: Keys.AFFILIATE },
-      UpdateExpression: "SET pendingPayout = :zero, lastPayoutRequestedAt = :now",
+      UpdateExpression:
+        "SET pendingPayout = :zero, lastPayoutRequestedAt = :now, lastTransferId = :tid, totalPaidOut = if_not_exists(totalPaidOut, :zero) + :amount",
       ExpressionAttributeValues: {
         ":zero": 0,
         ":now": new Date().toISOString(),
+        ":tid": transfer.id,
+        ":amount": pending,
       },
     }),
   );
 
-  log.info("Payout requested", { userId, amount: pending });
-  return ok({ requested: true, amount: pending });
+  log.info("Payout transferred", { userId, amount: pending, transferId: transfer.id });
+  return ok({ requested: true, amount: pending, transferId: transfer.id });
 }

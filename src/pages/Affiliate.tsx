@@ -1,11 +1,25 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Share2, Copy, Check, Users, DollarSign, Wallet } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import {
+  Share2,
+  Copy,
+  Check,
+  Users,
+  DollarSign,
+  Wallet,
+  ExternalLink,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+} from "lucide-react";
 import { apiFetch } from "@/lib/api";
 
 interface AffiliateData {
   enrolled: boolean;
   referralCode?: string;
+  stripeAccountId?: string | null;
+  stripeOnboarded?: boolean;
   totalEarnings?: number;
   pendingPayout?: number;
   totalReferrals?: number;
@@ -14,11 +28,14 @@ interface AffiliateData {
 
 export default function AffiliatePage() {
   const { t } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [data, setData] = useState<AffiliateData | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
+  const [payoutLoading, setPayoutLoading] = useState(false);
   const [payoutRequested, setPayoutRequested] = useState(false);
+  const [payoutError, setPayoutError] = useState("");
 
   const fetchData = useCallback(async () => {
     try {
@@ -36,11 +53,39 @@ export default function AffiliatePage() {
     fetchData();
   }, [fetchData]);
 
+  // Handle ?connect=return (came back from Stripe onboarding)
+  // Handle ?connect=refresh (onboarding link expired, need new one)
+  useEffect(() => {
+    const connectParam = searchParams.get("connect");
+    if (!connectParam) return;
+
+    // Clear the query param
+    setSearchParams({}, { replace: true });
+
+    if (connectParam === "refresh") {
+      // Get a fresh onboarding link
+      apiFetch("/checkout/affiliate/connect/onboard")
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.onboardingUrl) {
+            window.location.href = json.onboardingUrl;
+          }
+        })
+        .catch(() => {});
+    }
+    // For "return", fetchData will pick up the updated status
+  }, [searchParams, setSearchParams]);
+
   const handleEnroll = async () => {
     setEnrolling(true);
     try {
-      await apiFetch("/checkout/affiliate", { method: "POST" });
-      await fetchData();
+      const res = await apiFetch("/checkout/affiliate", { method: "POST" });
+      const json = await res.json();
+      if (json.onboardingUrl) {
+        window.location.href = json.onboardingUrl;
+      } else {
+        await fetchData();
+      }
     } catch {
       // silent
     } finally {
@@ -56,13 +101,34 @@ export default function AffiliatePage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handlePayout = async () => {
+  const handleConnectOnboard = async () => {
     try {
-      await apiFetch("/checkout/affiliate/payout", { method: "POST" });
-      setPayoutRequested(true);
-      await fetchData();
+      const res = await apiFetch("/checkout/affiliate/connect/onboard");
+      const json = await res.json();
+      if (json.onboardingUrl) {
+        window.location.href = json.onboardingUrl;
+      }
     } catch {
       // silent
+    }
+  };
+
+  const handlePayout = async () => {
+    setPayoutLoading(true);
+    setPayoutError("");
+    try {
+      const res = await apiFetch("/checkout/affiliate/payout", { method: "POST" });
+      if (!res.ok) {
+        const json = await res.json();
+        setPayoutError(json.error || t("affiliate.payoutFailed"));
+      } else {
+        setPayoutRequested(true);
+        await fetchData();
+      }
+    } catch {
+      setPayoutError(t("affiliate.payoutFailed"));
+    } finally {
+      setPayoutLoading(false);
     }
   };
 
@@ -111,14 +177,46 @@ export default function AffiliatePage() {
             disabled={enrolling}
             className="inline-flex items-center gap-2 rounded-full bg-rose-500 px-8 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-rose-600 disabled:opacity-50"
           >
-            <Share2 className="h-4 w-4" />
+            {enrolling ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Share2 className="h-4 w-4" />
+            )}
             {enrolling ? t("common.loading") : t("common.getStarted")}
           </button>
+          <p className="mt-3 text-xs text-stone-400">{t("affiliate.stripeOnboardingNote")}</p>
         </div>
       ) : (
         <>
-          {/* Referral Link */}
+          {/* Stripe Connect Status */}
           <div className="mt-8 rounded-2xl border border-stone-200 bg-white p-6 dark:border-stone-700 dark:bg-stone-800">
+            <h2 className="mb-3 text-sm font-semibold text-stone-800 dark:text-white">
+              {t("affiliate.payoutAccount")}
+            </h2>
+            {data.stripeOnboarded ? (
+              <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2 className="h-4 w-4" />
+                {t("affiliate.stripeConnected")}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
+                  <AlertCircle className="h-4 w-4" />
+                  {t("affiliate.stripeNotConnected")}
+                </div>
+                <button
+                  onClick={handleConnectOnboard}
+                  className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  {t("affiliate.completeStripeSetup")}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Referral Link */}
+          <div className="mt-6 rounded-2xl border border-stone-200 bg-white p-6 dark:border-stone-700 dark:bg-stone-800">
             <h2 className="mb-3 text-sm font-semibold text-stone-800 dark:text-white">
               {t("affiliate.yourLink")}
             </h2>
@@ -166,19 +264,27 @@ export default function AffiliatePage() {
           {/* Payout */}
           <div className="mt-6 text-center">
             {payoutRequested ? (
-              <p className="text-sm font-medium text-emerald-600">
-                {t("affiliate.payoutRequested")}
-              </p>
+              <p className="text-sm font-medium text-emerald-600">{t("affiliate.payoutSuccess")}</p>
             ) : (
               <>
                 <button
                   onClick={handlePayout}
-                  disabled={(data.pendingPayout || 0) < 1000}
+                  disabled={
+                    payoutLoading ||
+                    (data.pendingPayout || 0) < MIN_PAYOUT_CENTS ||
+                    !data.stripeOnboarded
+                  }
                   className="inline-flex items-center gap-2 rounded-full bg-stone-900 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-stone-800 disabled:opacity-40 dark:bg-white dark:text-stone-900 dark:hover:bg-stone-100"
                 >
+                  {payoutLoading && <Loader2 className="h-4 w-4 animate-spin" />}
                   {t("affiliate.requestPayout")}
                 </button>
-                <p className="mt-2 text-xs text-stone-400">{t("affiliate.payoutMinimum")}</p>
+                {payoutError && <p className="mt-2 text-xs text-red-500">{payoutError}</p>}
+                <p className="mt-2 text-xs text-stone-400">
+                  {!data.stripeOnboarded
+                    ? t("affiliate.completeStripeFirst")
+                    : t("affiliate.payoutMinimum")}
+                </p>
               </>
             )}
           </div>
@@ -215,3 +321,5 @@ export default function AffiliatePage() {
     </div>
   );
 }
+
+const MIN_PAYOUT_CENTS = 1000;
